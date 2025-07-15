@@ -1,9 +1,9 @@
 import { StyleSheet, Text, View } from "react-native";
 
-export default function NotFoundScreen() {
+export default function HomeScreen() {
   return (
     <View style={styles.container}>
-      <Text style={styles.text}>Not Found</Text>
+      <Text style={styles.text}>Hello World</Text>
     </View>
   );
 }
@@ -16,6 +16,7 @@ const styles = StyleSheet.create({
     backgroundColor: "#fff",
   },
   text: {
-    fontSize: 20,
+    fontSize: 24,
+    fontWeight: "bold",
   },
 });
