@@ -1,0 +1,18 @@
+Dominant Colors:
+Violet / Purple Gradient Background
+
+Starts with a deep violet (#5E2CA5 or similar)
+
+Fades into a lighter lavender/pastel purple (#B79AFB to #D4C2FF range)
+
+Dark Modal Container
+
+Likely a very dark charcoal black or deep gray (#1A1A1A or #121212)
+
+White / Light Text
+
+Used for contrast on the dark background, typically #FFFFFF or #F8F8F8
+
+Soft Gray for Placeholder and Secondary Text
+
+Subtle muted gray for input hints and descriptions, around #AAAAAA or #888888
