@@ -341,7 +341,7 @@ export default function PhotoUploadScreen() {
   const [photos, setPhotos] = useState<PhotoItem[]>([]);
   const [isLoading, setIsLoading] = useState(false);
 
-  const isComplete = photos.length >= 5; // Changed from photos.length === 10
+  const isComplete = true; // Always allow completion - photos are optional
 
   const pickMultipleImages = async () => {
     try {
@@ -389,8 +389,8 @@ export default function PhotoUploadScreen() {
   const handleComplete = () => {
     if (isComplete) {
       console.log(`${photos.length} photos uploaded, proceeding to next step`);
-      // Navigate to dashboard screen
-      router.push("/dashboard");
+      // Navigate to profile screen
+      router.push("/profile-screen");
     }
   };
 
@@ -425,7 +425,7 @@ export default function PhotoUploadScreen() {
             {/* Header */}
             <View style={styles.headerContainer}>
               <Text style={styles.subtitle}>
-                Select 5-10 photos that represent who you are
+                Add photos to show who you are (optional)
               </Text>
             </View>
 
@@ -434,8 +434,8 @@ export default function PhotoUploadScreen() {
               <View style={styles.progressInfo}>
                 <Text style={styles.progressText}>
                   {photos.length}/10 selected
-                  {photos.length >= 5 && (
-                    <Text style={styles.progressComplete}> ✓ Ready</Text>
+                  {photos.length > 0 && (
+                    <Text style={styles.progressComplete}> ✓ Great!</Text>
                   )}
                 </Text>
                 <View style={styles.progressBar}>
@@ -449,8 +449,8 @@ export default function PhotoUploadScreen() {
                   <View style={styles.thresholdIndicator} />
                 </View>
                 <Text style={styles.progressSubtext}>
-                  {photos.length < 5
-                    ? `${5 - photos.length} more needed to complete profile`
+                  {photos.length === 0
+                    ? "Add photos to enhance your profile"
                     : `${10 - photos.length} more slots available`}
                 </Text>
               </View>
@@ -488,8 +488,10 @@ export default function PhotoUploadScreen() {
                   <Text style={styles.tipText}>Be authentic and genuine</Text>
                 </View>
                 <View style={styles.tipItem}>
-                  <Ionicons name="checkmark-circle" size={16} color="#C6B2FF" />
-                  <Text style={styles.tipText}>Minimum 5 photos required</Text>
+                  <Ionicons name="star" size={16} color="#C6B2FF" />
+                  <Text style={styles.tipText}>
+                    Photos are optional but recommended
+                  </Text>
                 </View>
               </View>
             </View>

@@ -2,7 +2,7 @@
 
 import { LinearGradient } from "expo-linear-gradient";
 import { useEffect } from "react";
-import { StyleSheet, View } from "react-native";
+import { Image, StyleSheet, View } from "react-native";
 import Animated, {
   Easing,
   interpolate,
@@ -12,6 +12,8 @@ import Animated, {
   withSequence,
   withTiming,
 } from "react-native-reanimated";
+
+const aijaImage = require("../../assets/images/aija4.png");
 
 interface VoiceAvatarProps {
   isListening: boolean;
@@ -116,17 +118,23 @@ export default function VoiceAvatar({ isListening }: VoiceAvatarProps) {
 
       {/* Main orb */}
       <Animated.View style={[styles.orb, animatedOrbStyle]}>
-        <LinearGradient
-          colors={["#C6B2FF", "#8B5FBF", "#5E2CA5"]}
-          style={styles.orbGradient}
-          start={{ x: 0, y: 0 }}
-          end={{ x: 1, y: 1 }}
-        />
+        {/* Background gradient */}
+        <View style={styles.orbGradient}>
+          <LinearGradient
+            colors={["#C6B2FF", "#8B5FBF", "#5E2CA5"]}
+            style={StyleSheet.absoluteFill}
+            start={{ x: 0, y: 0 }}
+            end={{ x: 1, y: 1 }}
+          />
+        </View>
 
-        {/* Inner glow */}
+        {/* Aija image inside the orb */}
+        <Image source={aijaImage} style={styles.aijaImage} resizeMode="cover" />
+
+        {/* Inner glow overlay */}
         <View style={styles.innerGlow}>
           <LinearGradient
-            colors={["rgba(240, 239, 255, 0.8)", "rgba(198, 178, 255, 0.2)"]}
+            colors={["rgba(240, 239, 255, 0.2)", "transparent"]}
             style={styles.innerGlowGradient}
           />
         </View>
@@ -211,8 +219,9 @@ const styles = StyleSheet.create({
     elevation: 20,
   },
   orbGradient: {
-    flex: 1,
+    ...StyleSheet.absoluteFillObject, // replace flex: 1
     borderRadius: 70,
+    overflow: "hidden",
   },
   innerGlow: {
     position: "absolute",
@@ -222,6 +231,7 @@ const styles = StyleSheet.create({
     bottom: 10,
     borderRadius: 60,
     overflow: "hidden",
+    zIndex: 2,
   },
   innerGlowGradient: {
     flex: 1,
@@ -239,5 +249,14 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: "rgba(240, 239, 255, 0.3)",
     borderRadius: 150,
+  },
+  aijaImage: {
+    position: "absolute",
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    borderRadius: 70, // match orb radius
+    zIndex: 1, // ensure it's above background but below innerGlow
   },
 });

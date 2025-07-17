@@ -38,6 +38,7 @@ export default function SignupScreen() {
   const insets = useSafeAreaInsets();
   const [name, setName] = useState("");
   const [phone, setPhone] = useState("");
+  const [instagram, setInstagram] = useState("");
   const [gender, setGender] = useState<"male" | "female" | null>(null);
 
   const handlePhoneChange = (text: string) => {
@@ -50,6 +51,12 @@ export default function SignupScreen() {
     }
   };
 
+  const handleInstagramChange = (text: string) => {
+    // Remove @ symbol if user types it
+    const cleaned = text.replace("@", "");
+    setInstagram(cleaned);
+  };
+
   const displayPhone = formatPhoneNumber(phone);
 
   return (
@@ -57,7 +64,7 @@ export default function SignupScreen() {
       <StatusBar barStyle="light-content" />
 
       <LinearGradient
-        colors={["#3A1B6B", "#5E2CA5", "#8B5FBF"]}
+        colors={["#3A1B6B", "#5E2CA5", "#9440dd"]}
         style={styles.gradient}
         start={{ x: 0, y: 0 }}
         end={{ x: 1, y: 1 }}
@@ -98,7 +105,7 @@ export default function SignupScreen() {
                     style={styles.input}
                     value={name}
                     onChangeText={setName}
-                    placeholder="Enter your full name"
+                    placeholder="Alice Seef"
                     placeholderTextColor="rgba(255, 255, 255, 0.5)"
                     autoCapitalize="words"
                   />
@@ -118,6 +125,25 @@ export default function SignupScreen() {
                       placeholder="(123) 456-7890"
                       placeholderTextColor="rgba(255, 255, 255, 0.5)"
                       keyboardType="phone-pad"
+                    />
+                  </View>
+                </View>
+              </View>
+
+              {/* Instagram Input */}
+              <View style={styles.inputContainer}>
+                <Text style={styles.label}>Instagram Handle</Text>
+                <View style={styles.inputWrapper}>
+                  <View style={styles.instagramInputContainer}>
+                    <Text style={styles.instagramPrefix}>@</Text>
+                    <TextInput
+                      style={styles.instagramInput}
+                      value={instagram}
+                      onChangeText={handleInstagramChange}
+                      placeholder="username"
+                      placeholderTextColor="rgba(255, 255, 255, 0.5)"
+                      autoCapitalize="none"
+                      autoCorrect={false}
                     />
                   </View>
                 </View>
@@ -171,15 +197,15 @@ export default function SignupScreen() {
               <TouchableOpacity
                 style={[
                   styles.button,
-                  (!name || !phone || !gender) && styles.buttonDisabled,
+                  (!name || !phone || !instagram || !gender) &&
+                    styles.buttonDisabled,
                 ]}
                 activeOpacity={0.8}
-                disabled={!name || !phone || !gender}
                 onPress={() => router.push("/onboarding")}
               >
                 <LinearGradient
                   colors={
-                    name && phone && gender
+                    name && phone && instagram && gender
                       ? ["#F0EFFF", "#C6B2FF"]
                       : ["rgba(240, 239, 255, 0.3)", "rgba(198, 178, 255, 0.3)"]
                   }
@@ -190,7 +216,8 @@ export default function SignupScreen() {
                   <Text
                     style={[
                       styles.buttonText,
-                      (!name || !phone || !gender) && styles.buttonTextDisabled,
+                      (!name || !phone || !instagram || !gender) &&
+                        styles.buttonTextDisabled,
                     ]}
                   >
                     Continue
@@ -232,7 +259,7 @@ const styles = StyleSheet.create({
     backgroundColor: "rgba(255, 255, 255, 0.15)",
     alignItems: "center",
     justifyContent: "center",
-    shadowColor: "#C6B2FF",
+    shadowColor: "#9440dd",
     shadowOffset: {
       width: 0,
       height: 2,
@@ -273,7 +300,7 @@ const styles = StyleSheet.create({
     borderRadius: 16,
     borderWidth: 1,
     borderColor: "rgba(255, 255, 255, 0.2)",
-    shadowColor: "#C6B2FF",
+    shadowColor: "#9440dd",
     shadowOffset: {
       width: 0,
       height: 2,
@@ -311,6 +338,27 @@ const styles = StyleSheet.create({
     fontFamily: "System",
     fontWeight: "500",
   },
+  instagramInputContainer: {
+    flexDirection: "row",
+    alignItems: "center",
+    paddingHorizontal: 20,
+    paddingVertical: 16,
+  },
+  instagramPrefix: {
+    fontSize: 16,
+    fontWeight: "600",
+    color: "#9440dd",
+    marginRight: 8,
+    fontFamily: "System",
+    letterSpacing: 0.3,
+  },
+  instagramInput: {
+    flex: 1,
+    fontSize: 16,
+    color: "#FFFFFF",
+    fontFamily: "System",
+    fontWeight: "500",
+  },
   genderContainer: {
     flexDirection: "row",
     gap: 16,
@@ -324,7 +372,7 @@ const styles = StyleSheet.create({
     borderColor: "rgba(255, 255, 255, 0.2)",
     alignItems: "center",
     justifyContent: "center",
-    shadowColor: "#C6B2FF",
+    shadowColor: "#9440dd",
     shadowOffset: {
       width: 0,
       height: 2,
@@ -334,9 +382,9 @@ const styles = StyleSheet.create({
     elevation: 6,
   },
   genderBoxSelected: {
-    backgroundColor: "rgba(94, 44, 165, 0.4)",
+    backgroundColor: "rgba(148, 64, 221, 0.4)",
     borderColor: "rgba(240, 239, 255, 0.8)",
-    shadowColor: "#C6B2FF",
+    shadowColor: "#9440dd",
     shadowOpacity: 0.6,
     shadowRadius: 12,
     elevation: 10,
@@ -361,7 +409,7 @@ const styles = StyleSheet.create({
     width: width - 64,
     height: 60,
     borderRadius: 30,
-    shadowColor: "#C6B2FF",
+    shadowColor: "#9440dd",
     shadowOffset: {
       width: 0,
       height: 12,
@@ -385,11 +433,11 @@ const styles = StyleSheet.create({
   buttonText: {
     fontSize: 20,
     fontWeight: "700",
-    color: "#5E2CA5",
+    color: "#9440dd",
     fontFamily: "System",
     letterSpacing: 0.5,
   },
   buttonTextDisabled: {
-    color: "rgba(94, 44, 165, 0.5)",
+    color: "rgba(148, 64, 221, 0.5)",
   },
 });
