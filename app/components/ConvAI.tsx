@@ -49,15 +49,31 @@ export default function ConvAI({ agentId }: { agentId: string }) {
 
 const styles = StyleSheet.create({
   btn: {
-    /* your styles */
+    width: 80,
+    height: 80,
+    borderRadius: 40,
+    backgroundColor: "#8B5FBF",
+    justifyContent: "center",
+    alignItems: "center",
+    shadowColor: "#5E2CA5",
+    shadowOffset: { width: 0, height: 6 },
+    shadowOpacity: 0.18,
+    shadowRadius: 12,
+    elevation: 8,
   },
   on: {
-    /* active style */
+    backgroundColor: "#E9D8FD",
+    shadowColor: "#8B5FBF",
   },
   inner: {
-    /* inner view */
+    width: 64,
+    height: 64,
+    borderRadius: 32,
+    backgroundColor: "#5E2CA5",
+    justifyContent: "center",
+    alignItems: "center",
   },
   innerOn: {
-    /* inner active */
+    backgroundColor: "#8B5FBF",
   },
 });
