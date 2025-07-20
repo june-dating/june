@@ -64,7 +64,7 @@ export default function SignupScreen() {
       <StatusBar barStyle="light-content" />
 
       <LinearGradient
-        colors={["#3A1B6B", "#5E2CA5", "#9440dd"]}
+        colors={["#5E2CA5", "#9440dd"]}
         style={styles.gradient}
         start={{ x: 0, y: 0 }}
         end={{ x: 1, y: 1 }}
@@ -195,33 +195,17 @@ export default function SignupScreen() {
             {/* Continue Button */}
             <View style={styles.buttonContainer}>
               <TouchableOpacity
-                style={[
-                  styles.button,
-                  (!name || !phone || !instagram || !gender) &&
-                    styles.buttonDisabled,
-                ]}
+                style={styles.button}
                 activeOpacity={0.8}
-                onPress={() => router.push("/onboarding")}
+                onPress={() => router.push("/gpt")}
               >
                 <LinearGradient
-                  colors={
-                    name && phone && instagram && gender
-                      ? ["#F0EFFF", "#C6B2FF"]
-                      : ["rgba(240, 239, 255, 0.3)", "rgba(198, 178, 255, 0.3)"]
-                  }
+                  colors={["#F0EFFF", "#C6B2FF"]}
                   style={styles.buttonGradient}
                   start={{ x: 0, y: 0 }}
                   end={{ x: 1, y: 1 }}
                 >
-                  <Text
-                    style={[
-                      styles.buttonText,
-                      (!name || !phone || !instagram || !gender) &&
-                        styles.buttonTextDisabled,
-                    ]}
-                  >
-                    Continue
-                  </Text>
+                  <Text style={styles.buttonText}>Continue</Text>
                 </LinearGradient>
               </TouchableOpacity>
             </View>

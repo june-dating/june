@@ -5,6 +5,7 @@ import { useRouter } from "expo-router";
 import React, { useState } from "react";
 import {
   Image,
+  Keyboard,
   KeyboardAvoidingView,
   Platform,
   ScrollView,
@@ -17,48 +18,18 @@ import {
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
-// Mock chat messages
-const mockMessages = [
-  {
-    id: 1,
-    text: "Hey! How's your day going?",
-    sender: "user",
-    timestamp: "2:30 PM",
-    isAudio: false,
-  },
-  {
-    id: 2,
-    text: "Hi there! It's been great, thanks for asking 😊",
-    sender: "other",
-    timestamp: "2:32 PM",
-    isAudio: false,
-  },
-  {
-    id: 3,
-    text: "That's awesome! I just finished a great workout at the gym",
-    sender: "user",
-    timestamp: "2:33 PM",
-    isAudio: false,
-  },
-  {
-    id: 4,
-    text: "Nice! I love staying active too. What kind of workout?",
-    sender: "other",
-    timestamp: "2:35 PM",
-    isAudio: false,
-  },
-  {
-    id: 5,
-    text: "🎵 Audio Message (0:12)",
-    sender: "user",
-    timestamp: "2:36 PM",
-    isAudio: true,
-  },
-];
+// Message interface
+interface Message {
+  id: number;
+  text: string;
+  sender: "user" | "other";
+  timestamp: string;
+  isAudio: boolean;
+}
 
 const otherUser = {
   name: "Aija Mayrock",
-  photo: require("../assets/images/img1.jpg"),
+  photo: require("../assets/images/aija5.jpg"),
   isOnline: true,
 };
 
@@ -67,12 +38,47 @@ export default function ChatScreen() {
   const router = useRouter();
   const [message, setMessage] = useState("");
   const [isRecording, setIsRecording] = useState(false);
+  const [messages, setMessages] = useState<Message[]>([]);
+  const [messageIdCounter, setMessageIdCounter] = useState(1);
+
+  const formatTime = () => {
+    const now = new Date();
+    return now.toLocaleTimeString("en-US", {
+      hour: "numeric",
+      minute: "2-digit",
+      hour12: true,
+    });
+  };
 
   const handleSendMessage = () => {
     if (message.trim()) {
-      // Add send message logic here
-      console.log("Sending message:", message);
+      const newMessage: Message = {
+        id: messageIdCounter,
+        text: message.trim(),
+        sender: "user",
+        timestamp: formatTime(),
+        isAudio: false,
+      };
+
+      setMessages((prev) => [...prev, newMessage]);
       setMessage("");
+      setMessageIdCounter((prev) => prev + 1);
+
+      // Close keyboard
+      Keyboard.dismiss();
+
+      // Auto-reply after a short delay
+      setTimeout(() => {
+        const replyMessage: Message = {
+          id: messageIdCounter + 1,
+          text: "Hey, what's up?",
+          sender: "other",
+          timestamp: formatTime(),
+          isAudio: false,
+        };
+        setMessages((prev) => [...prev, replyMessage]);
+        setMessageIdCounter((prev) => prev + 2);
+      }, 1000);
     }
   };
 
@@ -85,7 +91,7 @@ export default function ChatScreen() {
     router.push("/dashboard");
   };
 
-  const renderMessage = (msg: any) => {
+  const renderMessage = (msg: Message) => {
     const isUser = msg.sender === "user";
 
     return (
@@ -100,7 +106,12 @@ export default function ChatScreen() {
           {!isUser && (
             <Image source={otherUser.photo} style={styles.avatarSmall} />
           )}
-          <View style={styles.messageWithTimestamp}>
+          <View
+            style={[
+              styles.messageWithTimestamp,
+              isUser && styles.userMessageWithTimestamp,
+            ]}
+          >
             <View
               style={[
                 styles.messageBubble,
@@ -173,6 +184,9 @@ export default function ChatScreen() {
             <View style={styles.userDetails}>
               <Text style={styles.headerName}>{otherUser.name}</Text>
               <Text style={styles.onlineText}>Active now</Text>
+              <Text style={styles.aiPersonaText}>
+                Chat with Aija's AI persona
+              </Text>
             </View>
           </View>
 
@@ -186,57 +200,78 @@ export default function ChatScreen() {
       <ScrollView
         style={styles.messagesContainer}
         showsVerticalScrollIndicator={false}
-        contentContainerStyle={styles.messagesContent}
+        contentContainerStyle={[
+          styles.messagesContent,
+          messages.length === 0 && styles.emptyMessagesContent,
+        ]}
       >
-        {mockMessages.map(renderMessage)}
+        {messages.length === 0 ? (
+          <View style={styles.emptyStateContainer}>
+            <View style={styles.emptyStateImageContainer}>
+              <Image source={otherUser.photo} style={styles.emptyStateImage} />
+            </View>
+            <Text style={styles.emptyStateTitle}>Start a conversation</Text>
+            <Text style={styles.emptyStateSubtitle}>
+              Say hello to Aija's AI persona and start chatting!
+            </Text>
+          </View>
+        ) : (
+          messages.map(renderMessage)
+        )}
       </ScrollView>
 
       {/* Input Area */}
       <KeyboardAvoidingView
         behavior={Platform.OS === "ios" ? "padding" : "height"}
-        style={[styles.inputContainer, { paddingBottom: insets.bottom + 20 }]}
+        style={styles.inputContainer}
+        keyboardVerticalOffset={Platform.OS === "ios" ? 0 : 20}
       >
-        <BlurView intensity={95} tint="light" style={styles.inputBlur}>
+        <View
+          style={[styles.inputWrapper, { paddingBottom: insets.bottom + 10 }]}
+        >
           <View style={styles.inputRow}>
             <View style={styles.textInputContainer}>
               <TextInput
                 style={styles.textInput}
-                placeholder="Message..."
+                placeholder="Type a message..."
                 placeholderTextColor="#999"
                 value={message}
                 onChangeText={setMessage}
                 multiline
                 maxLength={500}
+                returnKeyType="send"
+                onSubmitEditing={handleSendMessage}
+                blurOnSubmit={false}
               />
-
-              <View style={styles.inputActions}>
-                <TouchableOpacity
-                  style={[
-                    styles.audioButton,
-                    isRecording && styles.audioButtonRecording,
-                  ]}
-                  onPress={handleAudioPress}
-                  onLongPress={handleAudioPress}
-                >
-                  {isRecording ? (
-                    <MaterialIcons name="stop" size={18} color="#fff" />
-                  ) : (
-                    <Ionicons name="mic" size={18} color="#666" />
-                  )}
-                </TouchableOpacity>
-
-                {message.trim() && (
-                  <TouchableOpacity
-                    style={styles.sendButton}
-                    onPress={handleSendMessage}
-                  >
-                    <Ionicons name="arrow-up" size={18} color="#fff" />
-                  </TouchableOpacity>
-                )}
-              </View>
             </View>
+
+            <TouchableOpacity
+              style={[
+                styles.audioButton,
+                isRecording && styles.audioButtonRecording,
+              ]}
+              onPress={handleAudioPress}
+              onLongPress={handleAudioPress}
+            >
+              {isRecording ? (
+                <MaterialIcons name="stop" size={18} color="#fff" />
+              ) : (
+                <Ionicons name="mic" size={18} color="#666" />
+              )}
+            </TouchableOpacity>
+
+            <TouchableOpacity
+              style={[
+                styles.sendButton,
+                !message.trim() && styles.sendButtonDisabled,
+              ]}
+              onPress={handleSendMessage}
+              disabled={!message.trim()}
+            >
+              <Ionicons name="arrow-up" size={20} color="#fff" />
+            </TouchableOpacity>
           </View>
-        </BlurView>
+        </View>
       </KeyboardAvoidingView>
     </View>
   );
@@ -318,12 +353,19 @@ const styles = StyleSheet.create({
     color: "#333",
     fontSize: 17,
     fontWeight: "600",
-    marginBottom: 2,
+    marginBottom: 1,
   },
   onlineText: {
     color: "#666",
     fontSize: 12,
     fontWeight: "400",
+    marginBottom: 2,
+  },
+  aiPersonaText: {
+    color: "#9440DD",
+    fontSize: 11,
+    fontWeight: "500",
+    fontStyle: "italic",
   },
   moreButton: {
     padding: 8,
@@ -337,8 +379,46 @@ const styles = StyleSheet.create({
     padding: 20,
     paddingBottom: 10,
   },
+  emptyMessagesContent: {
+    flexGrow: 1,
+    justifyContent: "center",
+  },
+  emptyStateContainer: {
+    alignItems: "center",
+    paddingHorizontal: 40,
+  },
+  emptyStateImageContainer: {
+    width: 120,
+    height: 120,
+    borderRadius: 60,
+    backgroundColor: "rgba(148, 64, 221, 0.1)",
+    justifyContent: "center",
+    alignItems: "center",
+    marginBottom: 24,
+    borderWidth: 3,
+    borderColor: "rgba(148, 64, 221, 0.2)",
+  },
+  emptyStateImage: {
+    width: 80,
+    height: 80,
+    borderRadius: 40,
+  },
+  emptyStateTitle: {
+    fontSize: 22,
+    fontWeight: "600",
+    color: "#333",
+    marginBottom: 8,
+    textAlign: "center",
+  },
+  emptyStateSubtitle: {
+    fontSize: 15,
+    color: "#666",
+    textAlign: "center",
+    lineHeight: 20,
+  },
   messageContainer: {
-    marginBottom: 16,
+    marginBottom: 20,
+    paddingHorizontal: 2,
   },
   messageContent: {
     flexDirection: "row",
@@ -351,47 +431,81 @@ const styles = StyleSheet.create({
     alignSelf: "flex-start",
   },
   messageWithTimestamp: {
-    maxWidth: "75%",
+    minWidth: "50%",
+    maxWidth: "80%",
+  },
+  userMessageWithTimestamp: {
+    minWidth: "50%",
+    maxWidth: "85%",
   },
   messageBubble: {
-    padding: 14,
-    borderRadius: 20,
-    marginHorizontal: 4,
+    paddingTop: 16,
+    paddingBottom: 12,
+    paddingHorizontal: 20,
+    borderRadius: 24,
+    // marginHorizontal: 4,
     shadowColor: "#000",
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.08,
-    shadowRadius: 4,
-    elevation: 2,
+    shadowOffset: { width: 0, height: 3 },
+    shadowOpacity: 0.15,
+    shadowRadius: 8,
+    elevation: 6,
+    minHeight: 48,
+    justifyContent: "center",
   },
   userBubble: {
     backgroundColor: "#9440DD",
-    borderBottomRightRadius: 6,
+    borderBottomRightRadius: 8,
     alignSelf: "flex-end",
+    shadowColor: "#9440DD",
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3,
+    shadowRadius: 12,
+    elevation: 8,
+    // Add gradient effect through background
+    borderWidth: 1,
+    borderColor: "rgba(255,255,255,0.2)",
+    // Override horizontal padding to reduce right padding
+    paddingLeft: 20,
+    paddingRight: 12,
   },
   otherBubble: {
-    backgroundColor: "#fff",
-    borderBottomLeftRadius: 6,
+    backgroundColor: "#ffffff",
+    borderBottomLeftRadius: 8,
     borderWidth: 1,
-    borderColor: "rgba(0,0,0,0.08)",
+    borderColor: "rgba(0,0,0,0.06)",
     alignSelf: "flex-start",
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 8,
+    elevation: 4,
+    // Add subtle inner shadow effect
+    borderTopWidth: 1,
+    borderTopColor: "rgba(0,0,0,0.02)",
   },
   messageText: {
     fontSize: 15,
     lineHeight: 20,
     color: "#333",
-    fontWeight: "400",
+    fontWeight: "500",
+    letterSpacing: 0.2,
   },
   userText: {
-    color: "#fff",
+    color: "#ffffff",
+    fontWeight: "600",
+    textShadowColor: "rgba(0,0,0,0.1)",
+    textShadowOffset: { width: 0, height: 1 },
+    textShadowRadius: 2,
   },
   timestamp: {
-    fontSize: 11,
-    marginTop: 4,
+    fontSize: 12,
+    marginTop: 6,
     marginHorizontal: 8,
-    fontWeight: "400",
+    fontWeight: "500",
+    opacity: 0.7,
   },
   userTimestamp: {
-    color: "#999",
+    color: "#666",
     textAlign: "right",
   },
   otherTimestamp: {
@@ -422,69 +536,90 @@ const styles = StyleSheet.create({
     paddingHorizontal: 0,
     paddingTop: 0,
   },
-  inputBlur: {
+  inputWrapper: {
+    backgroundColor: "#fff",
     paddingHorizontal: 20,
     paddingTop: 15,
-    paddingBottom: 5,
     borderTopWidth: 1,
-    borderTopColor: "rgba(0,0,0,0.05)",
+    borderTopColor: "rgba(0,0,0,0.08)",
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: -2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 8,
+    elevation: 8,
   },
   inputRow: {
     flexDirection: "row",
     alignItems: "flex-end",
+    gap: 12,
   },
   textInputContainer: {
     flex: 1,
-    backgroundColor: "rgba(0,0,0,0.04)",
-    borderRadius: 24,
-    paddingHorizontal: 16,
-    paddingVertical: 12,
-    flexDirection: "row",
-    alignItems: "flex-end",
-    minHeight: 48,
+    backgroundColor: "#f8f9fa",
+    borderRadius: 28,
+    paddingHorizontal: 20,
+    paddingVertical: 16,
+    minHeight: 54,
     maxHeight: 120,
-    borderWidth: 1,
-    borderColor: "rgba(0,0,0,0.08)",
+    borderWidth: 1.5,
+    borderColor: "rgba(148, 64, 221, 0.1)",
+    justifyContent: "center",
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.05,
+    shadowRadius: 4,
+    elevation: 2,
   },
   textInput: {
-    flex: 1,
-    fontSize: 15,
+    fontSize: 16,
     color: "#333",
     maxHeight: 80,
     paddingTop: 0,
     paddingBottom: 0,
-  },
-  inputActions: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 8,
-    marginLeft: 8,
+    textAlignVertical: "center",
+    lineHeight: 22,
+    fontWeight: "500",
   },
   audioButton: {
-    width: 36,
-    height: 36,
-    borderRadius: 18,
-    backgroundColor: "rgba(0,0,0,0.05)",
+    width: 48,
+    height: 48,
+    borderRadius: 24,
+    backgroundColor: "#f8f9fa",
     justifyContent: "center",
     alignItems: "center",
-    borderWidth: 1,
-    borderColor: "rgba(0,0,0,0.08)",
+    borderWidth: 1.5,
+    borderColor: "rgba(148, 64, 221, 0.1)",
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.05,
+    shadowRadius: 4,
+    elevation: 2,
   },
   audioButtonRecording: {
     backgroundColor: "#ff4444",
     borderColor: "#ff4444",
+    shadowColor: "#ff4444",
+    shadowOpacity: 0.3,
   },
   sendButton: {
-    width: 36,
-    height: 36,
-    borderRadius: 18,
+    width: 48,
+    height: 48,
+    borderRadius: 24,
     backgroundColor: "#9440DD",
     justifyContent: "center",
     alignItems: "center",
     shadowColor: "#9440DD",
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.3,
-    shadowRadius: 4,
-    elevation: 4,
+    shadowOffset: { width: 0, height: 3 },
+    shadowOpacity: 0.4,
+    shadowRadius: 8,
+    elevation: 6,
+    borderWidth: 1,
+    borderColor: "rgba(255,255,255,0.2)",
+  },
+  sendButtonDisabled: {
+    backgroundColor: "#d1d5db",
+    shadowOpacity: 0,
+    elevation: 0,
+    borderColor: "rgba(0,0,0,0.1)",
   },
 });

@@ -14,6 +14,7 @@ export default function RootLayout() {
   const colorScheme = useColorScheme();
   const [loaded] = useFonts({
     SpaceMono: require("../assets/fonts/SpaceMono-Regular.ttf"),
+    Mak: require("../assets/fonts/MAK-bold.otf"),
   });
 
   if (!loaded) {
@@ -23,14 +24,25 @@ export default function RootLayout() {
 
   return (
     <ThemeProvider value={colorScheme === "dark" ? DarkTheme : DefaultTheme}>
-      <Stack>
-        <Stack.Screen name="index" options={{ headerShown: false }} />
-        <Stack.Screen name="signup" options={{ headerShown: false }} />
-        <Stack.Screen name="onboarding" options={{ headerShown: false }} />
-        <Stack.Screen name="photo-upload" options={{ headerShown: false }} />
-        <Stack.Screen name="profile-screen" options={{ headerShown: false }} />
-        <Stack.Screen name="dashboard" options={{ headerShown: false }} />
-        <Stack.Screen name="chat-screen" options={{ headerShown: false }} />
+      <Stack screenOptions={{ headerShown: false }}>
+        {/* Main App Screens */}
+        <Stack.Screen name="index" />
+        <Stack.Screen name="juneconvo" />
+        <Stack.Screen name="signup" />
+        <Stack.Screen name="photo-upload" />
+        <Stack.Screen name="profile-screen" />
+        <Stack.Screen name="dashboard" />
+        <Stack.Screen name="chat-screen" />
+        <Stack.Screen name="gpt" />
+
+        {/* Onboarding Screens */}
+        <Stack.Screen name="onboarding/name" />
+        <Stack.Screen name="onboarding/birthday" />
+        <Stack.Screen name="onboarding/gender" />
+        <Stack.Screen name="onboarding/looking-for" />
+        <Stack.Screen name="onboarding/socials" />
+        <Stack.Screen name="onboarding/phone" />
+
         <Stack.Screen name="+not-found" />
       </Stack>
       <StatusBar style="auto" hidden={true} />

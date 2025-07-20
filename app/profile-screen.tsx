@@ -38,7 +38,7 @@ const profileData = {
   facePhotos: [
     {
       id: "2",
-      uri: require("../assets/images/img1.jpg"),
+      uri: require("../assets/images/aija5.jpg"),
     },
     {
       id: "1",
@@ -46,7 +46,7 @@ const profileData = {
     },
     {
       id: "3",
-      uri: "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=400&h=400&fit=crop&crop=face",
+      uri: require("../assets/images/img1.jpg"),
     },
     {
       id: "4",
@@ -410,7 +410,7 @@ const styles = StyleSheet.create({
   },
   headerContainer: {
     alignItems: "center",
-    marginBottom: 32,
+    marginBottom: 16,
   },
   profileImageContainer: {
     position: "relative",

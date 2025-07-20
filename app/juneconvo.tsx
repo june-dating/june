@@ -22,7 +22,6 @@ import Animated, {
   withTiming,
 } from "react-native-reanimated";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
-import ConvAI from "./components/ConvAI";
 import VoiceAvatar from "./components/VoiceAvatar";
 
 const { width, height } = Dimensions.get("window");
@@ -98,7 +97,7 @@ export default function VoiceOnboardingScreen() {
           </View>
 
           {/* ConvAI Component */}
-          <ConvAI agentId="agent_01k0cyxjt3eggs2nfpj7ybh2gc" />
+          {/* <ConvAI agentId="agent_01k0cyxjt3eggs2nfpj7ybh2gc" /> */}
 
           {/* Speak Button - circular, floating */}
           <View style={styles.speakButtonContainer}>
