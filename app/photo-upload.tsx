@@ -1,6 +1,7 @@
 "use client";
 
 import { Ionicons } from "@expo/vector-icons";
+import { useFonts } from "expo-font";
 import * as ImagePicker from "expo-image-picker";
 import { LinearGradient } from "expo-linear-gradient";
 import { router } from "expo-router";
@@ -26,6 +27,7 @@ import Animated, {
   withTiming,
 } from "react-native-reanimated";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
+import { OnboardingColors } from "./colors";
 
 const { width, height } = Dimensions.get("window");
 
@@ -149,8 +151,8 @@ function PhotoCarousel({
               {
                 backgroundColor:
                   Math.floor(currentIndex / 3) === index
-                    ? "rgba(255, 255, 255, 0.8)"
-                    : "rgba(255, 255, 255, 0.3)",
+                    ? OnboardingColors.background.input
+                    : OnboardingColors.background.input,
               },
             ]}
           />
@@ -207,7 +209,10 @@ function SelectPhotosButton({
         activeOpacity={0.8}
       >
         <LinearGradient
-          colors={["#F0EFFF", "#C6B2FF"]}
+          colors={[
+            OnboardingColors.background.input,
+            OnboardingColors.background.input,
+          ]}
           style={styles.selectButtonGradient}
           start={{ x: 0, y: 0 }}
           end={{ x: 1, y: 1 }}
@@ -215,7 +220,7 @@ function SelectPhotosButton({
           <Ionicons
             name="images"
             size={24}
-            color="#5E2CA5"
+            color={OnboardingColors.icon.button}
             style={{ marginRight: 8 }}
           />
           <Text style={styles.selectButtonText}>Select Photos</Text>
@@ -294,8 +299,11 @@ function CompletionButton({
         <LinearGradient
           colors={
             isComplete
-              ? ["#8B5FBF", "#5E2CA5"]
-              : ["rgba(255, 255, 255, 0.1)", "rgba(255, 255, 255, 0.05)"]
+              ? OnboardingColors.background.buttonEnabled
+              : [
+                  OnboardingColors.background.input,
+                  OnboardingColors.background.input,
+                ]
           }
           style={styles.completionButtonGradient}
           start={{ x: 0, y: 0 }}
@@ -304,7 +312,11 @@ function CompletionButton({
           <Ionicons
             name="checkmark"
             size={22}
-            color={isComplete ? "#FFF" : "rgba(255, 255, 255, 0.4)"}
+            color={
+              isComplete
+                ? OnboardingColors.text.button
+                : OnboardingColors.text.buttonDisabled
+            }
             style={{ marginRight: 8 }}
           />
           <Text
@@ -340,6 +352,10 @@ export default function PhotoUploadScreen() {
   const insets = useSafeAreaInsets();
   const [photos, setPhotos] = useState<PhotoItem[]>([]);
   const [isLoading, setIsLoading] = useState(false);
+  const [fontsLoaded] = useFonts({
+    Fraunces: require("../assets/fonts/Fraunces-VariableFont_SOFT,WONK,opsz,wght.ttf"),
+  });
+  if (!fontsLoaded) return null;
 
   const isComplete = true; // Always allow completion - photos are optional
 
@@ -390,7 +406,7 @@ export default function PhotoUploadScreen() {
     if (isComplete) {
       console.log(`${photos.length} photos uploaded, proceeding to next step`);
       // Navigate to profile screen
-      router.push("/profile-screen");
+      router.push("/gpt");
     }
   };
 
@@ -398,23 +414,18 @@ export default function PhotoUploadScreen() {
 
   return (
     <View style={styles.container}>
-      <StatusBar barStyle="light-content" />
+      <StatusBar barStyle={OnboardingColors.statusBar} />
 
       <LinearGradient
-        colors={["#3A1B6B", "#5E2CA5", "#8B5FBF"]}
+        colors={[
+          OnboardingColors.gradient.primary,
+          OnboardingColors.gradient.secondary,
+          OnboardingColors.gradient.tertiary,
+        ]}
         style={styles.gradient}
-        start={{ x: 0, y: 0 }}
-        end={{ x: 1, y: 1 }}
+        start={{ x: 1, y: 1.3 }}
+        end={{ x: 0, y: 0 }}
       >
-        {/* Back Button */}
-        <TouchableOpacity
-          style={[styles.backButton, { top: insets.top + 20 }]}
-          onPress={() => router.back()}
-          activeOpacity={0.7}
-        >
-          <Ionicons name="arrow-back" size={24} color="white" />
-        </TouchableOpacity>
-
         {/* Title - aligned with back button */}
         <View style={[styles.titleContainer, { top: insets.top + 20 }]}>
           <Text style={styles.title}>Show your world</Text>
@@ -425,35 +436,8 @@ export default function PhotoUploadScreen() {
             {/* Header */}
             <View style={styles.headerContainer}>
               <Text style={styles.subtitle}>
-                Add photos to show who you are (optional)
+                Add atleast 5 pictures (optional)
               </Text>
-            </View>
-
-            {/* Progress Section */}
-            <View style={styles.progressSection}>
-              <View style={styles.progressInfo}>
-                <Text style={styles.progressText}>
-                  {photos.length}/10 selected
-                  {photos.length > 0 && (
-                    <Text style={styles.progressComplete}> ✓ Great!</Text>
-                  )}
-                </Text>
-                <View style={styles.progressBar}>
-                  <View
-                    style={[
-                      styles.progressFill,
-                      { width: `${progressPercentage}%` },
-                    ]}
-                  />
-                  {/* Minimum threshold indicator */}
-                  <View style={styles.thresholdIndicator} />
-                </View>
-                <Text style={styles.progressSubtext}>
-                  {photos.length === 0
-                    ? "Add photos to enhance your profile"
-                    : `${10 - photos.length} more slots available`}
-                </Text>
-              </View>
             </View>
 
             {/* Photo Grid */}
@@ -474,21 +458,37 @@ export default function PhotoUploadScreen() {
               <Text style={styles.tipsTitle}>Photo Tips</Text>
               <View style={styles.tipsList}>
                 <View style={styles.tipItem}>
-                  <Ionicons name="camera" size={16} color="#C6B2FF" />
+                  <Ionicons
+                    name="camera"
+                    size={16}
+                    color={OnboardingColors.icon.button}
+                  />
                   <Text style={styles.tipText}>Include clear face photos</Text>
                 </View>
                 <View style={styles.tipItem}>
-                  <Ionicons name="sunny" size={16} color="#C6B2FF" />
+                  <Ionicons
+                    name="sunny"
+                    size={16}
+                    color={OnboardingColors.icon.button}
+                  />
                   <Text style={styles.tipText}>
                     Show your hobbies and interests
                   </Text>
                 </View>
                 <View style={styles.tipItem}>
-                  <Ionicons name="heart" size={16} color="#C6B2FF" />
+                  <Ionicons
+                    name="heart"
+                    size={16}
+                    color={OnboardingColors.icon.button}
+                  />
                   <Text style={styles.tipText}>Be authentic and genuine</Text>
                 </View>
                 <View style={styles.tipItem}>
-                  <Ionicons name="star" size={16} color="#C6B2FF" />
+                  <Ionicons
+                    name="star"
+                    size={16}
+                    color={OnboardingColors.icon.button}
+                  />
                   <Text style={styles.tipText}>
                     Photos are optional but recommended
                   </Text>
@@ -527,14 +527,14 @@ const styles = StyleSheet.create({
     width: 40,
     height: 40,
     borderRadius: 20,
-    backgroundColor: "rgba(255, 255, 255, 0.15)",
+    backgroundColor: OnboardingColors.background.input,
     alignItems: "center",
     justifyContent: "center",
-    shadowColor: "#C6B2FF",
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.3,
-    shadowRadius: 8,
-    elevation: 6,
+    shadowColor: OnboardingColors.shadow.primary,
+    shadowOffset: OnboardingColors.shadow.offset,
+    shadowOpacity: OnboardingColors.shadow.opacity.light,
+    shadowRadius: OnboardingColors.shadow.radius.small,
+    elevation: OnboardingColors.shadow.elevation.light,
   },
   titleContainer: {
     position: "absolute",
@@ -543,7 +543,8 @@ const styles = StyleSheet.create({
     zIndex: 10,
     alignItems: "center",
     justifyContent: "center",
-    height: 40,
+    height: 64,
+    marginTop: 16,
   },
   content: {
     paddingHorizontal: 24,
@@ -554,19 +555,19 @@ const styles = StyleSheet.create({
     marginBottom: Math.max(AVAILABLE_HEIGHT * 0.015, 8),
   },
   title: {
-    fontSize: Math.max(AVAILABLE_HEIGHT * 0.04, 28),
-    fontWeight: "800",
-    color: "#FFFFFF",
+    fontSize: 36,
+    fontWeight: "600",
+    color: OnboardingColors.text.primary,
     textAlign: "center",
-    marginBottom: 6,
-    fontFamily: "System",
+    marginBottom: 18,
+    fontFamily: "Fraunces",
   },
   subtitle: {
-    fontSize: Math.max(AVAILABLE_HEIGHT * 0.022, 15),
-    color: "rgba(255, 255, 255, 0.7)",
+    fontSize: 16,
+    color: OnboardingColors.text.secondary,
     textAlign: "center",
-    fontFamily: "System",
-    fontWeight: "400",
+    fontFamily: "Fraunces",
+    fontWeight: "300",
     lineHeight: 22,
   },
   progressSection: {
@@ -576,52 +577,54 @@ const styles = StyleSheet.create({
     alignItems: "center",
   },
   progressText: {
-    fontSize: Math.max(AVAILABLE_HEIGHT * 0.022, 14),
-    color: "rgba(255, 255, 255, 0.8)",
-    fontFamily: "System",
+    fontSize: 14,
+    color: OnboardingColors.text.progress,
+    fontFamily: "Fraunces",
     fontWeight: "600",
     marginBottom: 10,
     textAlign: "center",
   },
   progressComplete: {
-    color: "#C6B2FF",
+    color: OnboardingColors.icon.button,
     fontWeight: "700",
+    fontFamily: "Fraunces",
   },
   progressBar: {
     width: width - 64,
     height: 6,
-    backgroundColor: "rgba(255, 255, 255, 0.2)",
+    backgroundColor: OnboardingColors.background.progressBackground,
     borderRadius: 3,
     overflow: "hidden",
     position: "relative",
   },
   progressFill: {
     height: "100%",
-    backgroundColor: "#C6B2FF",
+    backgroundColor: OnboardingColors.background.progressFill,
     borderRadius: 3,
   },
   thresholdIndicator: {
     position: "absolute",
-    left: "50%", // 50% represents the 5/10 minimum threshold
+    left: "50%",
     top: -2,
     bottom: -2,
     width: 2,
-    backgroundColor: "#F0EFFF",
+    backgroundColor: OnboardingColors.background.progressFill,
     borderRadius: 1,
   },
   progressSubtext: {
-    fontSize: Math.max(AVAILABLE_HEIGHT * 0.018, 12),
-    color: "rgba(255, 255, 255, 0.6)",
-    fontFamily: "System",
+    fontSize: 12,
+    color: OnboardingColors.text.tertiary,
+    fontFamily: "Fraunces",
     fontWeight: "400",
     marginTop: 6,
     textAlign: "center",
   },
   photoSection: {
+    marginTop: 32,
     marginBottom: Math.max(AVAILABLE_HEIGHT * 0.025, 16),
   },
   carouselContainer: {
-    height: Math.min(AVAILABLE_HEIGHT * 0.32, 170) + 25, // Responsive height with larger photos
+    height: Math.min(AVAILABLE_HEIGHT * 0.32, 170) + 25,
     marginBottom: 15,
   },
   carouselContent: {
@@ -631,6 +634,9 @@ const styles = StyleSheet.create({
     borderRadius: 20,
     overflow: "hidden",
     marginRight: 14,
+    backgroundColor: OnboardingColors.background.input,
+    borderWidth: 2,
+    borderColor: OnboardingColors.border.input,
   },
   photoContainer: {
     flex: 1,
@@ -663,16 +669,17 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     alignItems: "center",
     borderWidth: 2.5,
-    borderColor: "rgba(255, 255, 255, 0.3)",
+    borderColor: OnboardingColors.border.input,
     borderStyle: "dashed",
+    backgroundColor: OnboardingColors.background.input,
   },
   emptySlotContent: {
     alignItems: "center",
   },
   emptySlotText: {
     fontSize: 14,
-    color: "rgba(255, 255, 255, 0.6)",
-    fontFamily: "System",
+    color: OnboardingColors.text.tertiary,
+    fontFamily: "Fraunces",
     fontWeight: "600",
     marginTop: 6,
   },
@@ -683,47 +690,54 @@ const styles = StyleSheet.create({
   selectButton: {
     width: width - 48,
     height: Math.max(AVAILABLE_HEIGHT * 0.065, 48),
-    borderRadius: Math.max(AVAILABLE_HEIGHT * 0.032, 24),
-    shadowColor: "#C6B2FF",
-    shadowOffset: { width: 0, height: 6 },
-    shadowOpacity: 0.3,
-    shadowRadius: 12,
-    elevation: 8,
+    borderRadius: 20,
+    shadowColor: OnboardingColors.shadow.primary,
+    shadowOffset: OnboardingColors.shadow.offset,
+    shadowOpacity: OnboardingColors.shadow.opacity.light,
+    shadowRadius: OnboardingColors.shadow.radius.small,
+    elevation: OnboardingColors.shadow.elevation.light,
   },
   selectButtonGradient: {
     flex: 1,
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "center",
-    borderRadius: 28,
+    borderRadius: 20,
     borderWidth: 1,
-    borderColor: "rgba(255, 255, 255, 0.2)",
+    borderColor: OnboardingColors.border.input,
     position: "relative",
     overflow: "hidden",
   },
   selectButtonText: {
-    fontSize: Math.max(AVAILABLE_HEIGHT * 0.024, 16),
+    fontSize: 16,
     fontWeight: "700",
-    color: "#5E2CA5",
-    fontFamily: "System",
+    color: OnboardingColors.text.tertiary,
+    fontFamily: "Fraunces",
+  },
+  smallProgressText: {
+    fontSize: 13,
+    color: OnboardingColors.text.tertiary,
+    fontFamily: "Fraunces",
+    textAlign: "center",
+    marginBottom: 16,
   },
   tipsSection: {
     marginBottom: Math.max(AVAILABLE_HEIGHT * 0.08, 40),
   },
   tipsTitle: {
-    fontSize: Math.max(AVAILABLE_HEIGHT * 0.024, 16),
+    fontSize: 16,
     fontWeight: "600",
-    color: "#FFFFFF",
-    fontFamily: "System",
+    color: OnboardingColors.text.primary,
+    fontFamily: "Fraunces",
     marginBottom: 10,
     textAlign: "center",
   },
   tipsList: {
-    backgroundColor: "rgba(255, 255, 255, 0.1)",
+    backgroundColor: OnboardingColors.background.platformCard,
     borderRadius: 12,
     padding: 16,
     borderWidth: 1,
-    borderColor: "rgba(255, 255, 255, 0.2)",
+    borderColor: OnboardingColors.border.input,
   },
   tipItem: {
     flexDirection: "row",
@@ -731,9 +745,9 @@ const styles = StyleSheet.create({
     marginBottom: 8,
   },
   tipText: {
-    fontSize: Math.max(AVAILABLE_HEIGHT * 0.02, 13),
-    color: "rgba(255, 255, 255, 0.8)",
-    fontFamily: "System",
+    fontSize: 13,
+    color: OnboardingColors.text.secondary,
+    fontFamily: "Fraunces",
     marginLeft: 10,
     flex: 1,
   },
@@ -751,35 +765,34 @@ const styles = StyleSheet.create({
   completionButton: {
     width: width - 48,
     height: Math.max(AVAILABLE_HEIGHT * 0.065, 48),
-    borderRadius: Math.max(AVAILABLE_HEIGHT * 0.032, 24),
+    borderRadius: 20,
     overflow: "hidden",
-    shadowColor: "#8B5FBF",
-    shadowOffset: { width: 0, height: 6 },
-    shadowOpacity: 0.3,
-    shadowRadius: 12,
-    elevation: 8,
+    shadowColor: OnboardingColors.shadow.primary,
+    shadowOffset: OnboardingColors.shadow.offset,
+    shadowOpacity: OnboardingColors.shadow.opacity.light,
+    shadowRadius: OnboardingColors.shadow.radius.small,
+    elevation: OnboardingColors.shadow.elevation.light,
   },
   completionButtonDisabled: {
-    shadowOpacity: 0.1,
+    opacity: OnboardingColors.opacity.buttonDisabled,
   },
   completionButtonGradient: {
     flex: 1,
     flexDirection: "row",
     justifyContent: "center",
     alignItems: "center",
-    borderWidth: 1,
-    borderColor: "rgba(255, 255, 255, 0.1)",
     position: "relative",
     overflow: "hidden",
   },
   completionButtonText: {
-    fontSize: Math.max(AVAILABLE_HEIGHT * 0.024, 16),
+    fontSize: 16,
     fontWeight: "700",
-    color: "#FFFFFF",
-    fontFamily: "System",
+    color: OnboardingColors.text.button,
+    fontFamily: "Fraunces",
   },
   completionButtonTextDisabled: {
-    color: "rgba(255, 255, 255, 0.4)",
+    color: OnboardingColors.text.buttonDisabled,
+    fontFamily: "Fraunces",
   },
   shimmerOverlay: {
     position: "absolute",
@@ -803,5 +816,6 @@ const styles = StyleSheet.create({
     height: 8,
     borderRadius: 4,
     marginHorizontal: 4,
+    backgroundColor: OnboardingColors.background.input,
   },
 });

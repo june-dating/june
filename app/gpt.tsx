@@ -4,6 +4,7 @@ import { MaterialIcons } from "@expo/vector-icons";
 import { LinearGradient } from "expo-linear-gradient";
 import { router } from "expo-router";
 
+import { useFonts } from "expo-font";
 import { useState } from "react";
 import {
   Alert,
@@ -19,6 +20,7 @@ import {
   View,
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
+import { OnboardingColors } from "./colors";
 
 const { width, height } = Dimensions.get("window");
 
@@ -30,6 +32,10 @@ export default function GPTScreen() {
   const [gptResponse, setGptResponse] = useState("");
   const [step, setStep] = useState(1); // 1: Instructions, 2: Paste response
   const [isCopied, setIsCopied] = useState(false);
+  const [fontsLoaded] = useFonts({
+    Fraunces: require("../assets/fonts/Fraunces-VariableFont_SOFT,WONK,opsz,wght.ttf"),
+  });
+  if (!fontsLoaded) return null;
 
   const copyPrompt = () => {
     try {
@@ -72,8 +78,8 @@ export default function GPTScreen() {
       setStep(2);
     } else if (step === 2 && gptResponse.trim()) {
       // Store the response somewhere if needed for later use
-      // For now, just navigate to onboarding
-      router.push("/onboarding");
+      // For now, just navigate to profile tab
+      router.replace("/(tabs)/profile-screen" as any);
     } else {
       Alert.alert(
         "Missing Response",
@@ -92,21 +98,21 @@ export default function GPTScreen() {
 
   return (
     <View style={styles.container}>
-      <StatusBar barStyle="light-content" />
+      <StatusBar barStyle={OnboardingColors.statusBar} />
       <LinearGradient
-        colors={["#5E2CA5", "#9440dd", "#E9D8FD"]}
+        colors={[
+          OnboardingColors.gradient.primary,
+          OnboardingColors.gradient.secondary,
+          OnboardingColors.gradient.tertiary,
+        ]}
         style={styles.gradient}
-        start={{ x: 0, y: 0 }}
-        end={{ x: 1, y: 1 }}
+        start={{ x: 1, y: 1.3 }}
+        end={{ x: 0, y: 0 }}
       >
         <View style={[styles.content, { paddingTop: insets.top + 20 }]}>
           {/* Header */}
           <View style={styles.header}>
-            <TouchableOpacity onPress={handleBack} style={styles.backButton}>
-              <MaterialIcons name="arrow-back" size={24} color="#FFF" />
-            </TouchableOpacity>
             <Text style={styles.headerTitle}>Create your profile</Text>
-            {/* <Text style={styles.stepIndicator}>Step {step} of 2</Text> */}
           </View>
 
           <ScrollView
@@ -184,7 +190,11 @@ export default function GPTScreen() {
                     <MaterialIcons
                       name={isCopied ? "check" : "content-copy"}
                       size={18}
-                      color={isCopied ? "#10B981" : "#9440dd"}
+                      color={
+                        isCopied
+                          ? OnboardingColors.icon.button
+                          : OnboardingColors.icon.button
+                      }
                     />
                     <Text
                       style={[
@@ -204,12 +214,16 @@ export default function GPTScreen() {
                   activeOpacity={0.8}
                 >
                   <LinearGradient
-                    colors={["#10A37F", "#1A7F64"]}
+                    colors={OnboardingColors.background.buttonEnabled}
                     style={styles.chatGPTGradient}
                     start={{ x: 0, y: 0 }}
                     end={{ x: 1, y: 1 }}
                   >
-                    <MaterialIcons name="open-in-new" size={20} color="#FFF" />
+                    <MaterialIcons
+                      name="open-in-new"
+                      size={20}
+                      color={OnboardingColors.text.button}
+                    />
                     <Text style={styles.chatGPTButtonText}>
                       Open ChatGPT App
                     </Text>
@@ -228,7 +242,7 @@ export default function GPTScreen() {
                     style={styles.textInput}
                     multiline
                     placeholder="Paste your ChatGPT response here..."
-                    placeholderTextColor="rgba(2, 2, 2, 0.5)"
+                    placeholderTextColor={OnboardingColors.text.tertiary}
                     value={gptResponse}
                     onChangeText={setGptResponse}
                     textAlignVertical="top"
@@ -244,20 +258,42 @@ export default function GPTScreen() {
           </ScrollView>
 
           {/* Next Button */}
-          <TouchableOpacity
-            style={[
-              styles.nextButton,
-              step === 2 && !gptResponse.trim() && styles.nextButtonDisabled,
-            ]}
-            onPress={handleNext}
-            activeOpacity={0.8}
-            disabled={step === 2 && !gptResponse.trim()}
-          >
-            <Text style={styles.nextButtonText}>
-              {step === 1 ? "I've done this, next" : "Continue to June"}
-            </Text>
-            <MaterialIcons name="arrow-forward" size={20} color="#FFF" />
-          </TouchableOpacity>
+          {step === 1 ? (
+            <View style={{ alignItems: "center", marginTop: 24 }}>
+              <TouchableOpacity
+                style={styles.centeredNextButton}
+                onPress={handleNext}
+                activeOpacity={0.85}
+              >
+                <Text style={styles.centeredNextButtonText}>
+                  I've done this, next
+                </Text>
+                <MaterialIcons
+                  name="arrow-forward"
+                  size={20}
+                  color={OnboardingColors.text.button}
+                />
+              </TouchableOpacity>
+            </View>
+          ) : (
+            <TouchableOpacity
+              style={[
+                styles.nextButton,
+                step === 2 && !gptResponse.trim() && styles.nextButtonDisabled,
+              ]}
+              onPress={handleNext}
+              activeOpacity={0.8}
+              disabled={step === 2 && !gptResponse.trim()}
+            >
+              <Text style={styles.nextButtonText}>Continue to June</Text>
+              <MaterialIcons
+                name="arrow-forward"
+                size={20}
+                color={OnboardingColors.text.button}
+                style={{ marginLeft: 8 }}
+              />
+            </TouchableOpacity>
+          )}
         </View>
       </LinearGradient>
     </View>
@@ -283,22 +319,18 @@ const styles = StyleSheet.create({
     marginBottom: 20,
     position: "relative",
   },
-  backButton: {
-    padding: 8,
-    position: "absolute",
-    left: 0,
-    zIndex: 1,
-  },
   headerTitle: {
-    fontSize: 20,
-    fontWeight: "700",
-    color: "#FFF",
+    fontSize: 36,
+    fontWeight: "400",
+    color: OnboardingColors.text.primary,
     textAlign: "center",
+    fontFamily: "Fraunces",
   },
   stepIndicator: {
     fontSize: 14,
-    color: "#E9D8FD",
-    fontWeight: "600",
+    color: OnboardingColors.text.tertiary,
+    fontWeight: "400",
+    fontFamily: "Fraunces",
   },
   scrollView: {
     flex: 1,
@@ -308,19 +340,19 @@ const styles = StyleSheet.create({
   },
   title: {
     fontSize: 32,
-    fontWeight: "800",
-    color: "#FFF",
+    fontWeight: "400",
+    color: OnboardingColors.text.primary,
     textAlign: "center",
     marginBottom: 12,
-    fontFamily: "System",
+    fontFamily: "Fraunces",
   },
   subtitle: {
     fontSize: 16,
-    color: "#FFFFFF",
+    color: OnboardingColors.text.secondary,
     textAlign: "center",
+    fontFamily: "Fraunces",
+    fontWeight: "300",
     lineHeight: 22,
-    fontFamily: "System",
-    fontWeight: "400",
     marginBottom: 20,
     marginHorizontal: 8,
   },
@@ -329,15 +361,15 @@ const styles = StyleSheet.create({
     marginTop: 15,
   },
   stepBoxVertical: {
-    backgroundColor: "rgba(255, 255, 255, 0.15)",
+    backgroundColor: OnboardingColors.background.input,
     borderRadius: 12,
     padding: 16,
     flexDirection: "row",
     alignItems: "center",
     marginBottom: 0,
-    borderWidth: 1,
-    borderColor: "rgba(255, 255, 255, 0.2)",
-    shadowColor: "#9440dd",
+    borderWidth: 0.5,
+    borderColor: OnboardingColors.border.input,
+    shadowColor: OnboardingColors.shadow.primary,
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.1,
     shadowRadius: 4,
@@ -346,82 +378,93 @@ const styles = StyleSheet.create({
   stepNumberBox: {
     width: 32,
     height: 32,
-    backgroundColor: "#9440dd",
+    backgroundColor: OnboardingColors.icon.button,
     borderRadius: 16,
     justifyContent: "center",
     alignItems: "center",
     marginRight: 12,
-    shadowColor: "#9440dd",
+    shadowColor: OnboardingColors.shadow.primary,
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.3,
     shadowRadius: 4,
     elevation: 4,
   },
   stepNumber: {
-    color: "#FFF",
+    color: OnboardingColors.text.primary,
     fontSize: 14,
-    fontWeight: "700",
+    fontWeight: "400",
+    fontFamily: "Fraunces",
   },
   stepTextVertical: {
     fontSize: 16,
-    color: "#FFF",
+    color: OnboardingColors.text.primary,
     flex: 1,
     lineHeight: 20,
-    fontWeight: "500",
+    fontWeight: "400",
+    fontFamily: "Fraunces",
   },
   arrowDownContainer: {
     alignItems: "center",
     marginVertical: 8,
   },
   promptCard: {
-    backgroundColor: "rgba(255, 255, 255, 0.95)",
+    backgroundColor: OnboardingColors.background.platformCard,
     borderRadius: 12,
     padding: 16,
     marginBottom: 16,
+    borderWidth: 0.5,
+    borderColor: OnboardingColors.border.input,
   },
   promptLabel: {
     fontSize: 13,
-    color: "#9440dd",
-    fontWeight: "600",
+    color: OnboardingColors.icon.button,
+    fontWeight: "400",
     marginBottom: 8,
+    fontFamily: "Fraunces",
   },
   promptText: {
     fontSize: 14,
-    color: "#2D3748",
+    color: OnboardingColors.text.primary,
     lineHeight: 20,
     marginBottom: 12,
     fontStyle: "italic",
+    fontFamily: "Fraunces",
   },
   copyButton: {
     flexDirection: "row",
     alignItems: "center",
-    backgroundColor: "#F7FAFC",
+    backgroundColor: OnboardingColors.background.input,
     borderRadius: 8,
     paddingHorizontal: 16,
     paddingVertical: 10,
     alignSelf: "flex-start",
+    borderWidth: 0.5,
+    borderColor: OnboardingColors.border.input,
   },
   copyButtonCopied: {
-    backgroundColor: "#ECFDF5",
-    borderWidth: 1,
-    borderColor: "#10B981",
+    backgroundColor: OnboardingColors.background.inputSelected,
+    borderWidth: 0.5,
+    borderColor: OnboardingColors.icon.button,
   },
   copyButtonText: {
     fontSize: 14,
-    color: "#9440dd",
-    fontWeight: "600",
+    color: OnboardingColors.icon.button,
+    fontWeight: "400",
     marginLeft: 8,
+    fontFamily: "Fraunces",
   },
   copyButtonTextCopied: {
-    color: "#10B981",
+    color: OnboardingColors.icon.button,
+    fontFamily: "Fraunces",
   },
   chatGPTButton: {
-    borderRadius: 12,
-    shadowColor: "#10A37F",
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.3,
-    shadowRadius: 8,
-    elevation: 8,
+    borderRadius: 20,
+    shadowColor: OnboardingColors.shadow.primary,
+    shadowOffset: OnboardingColors.shadow.offset,
+    shadowOpacity: OnboardingColors.shadow.opacity.light,
+    shadowRadius: OnboardingColors.shadow.radius.small,
+    elevation: OnboardingColors.shadow.elevation.light,
+    marginBottom: 16,
   },
   chatGPTGradient: {
     flexDirection: "row",
@@ -429,59 +472,90 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     paddingVertical: 14,
     paddingHorizontal: 24,
-    borderRadius: 12,
+    borderRadius: 20,
   },
   chatGPTButtonText: {
     fontSize: 16,
-    color: "#FFF",
-    fontWeight: "600",
+    color: OnboardingColors.text.button,
+    fontWeight: "400",
     marginLeft: 12,
+    fontFamily: "Fraunces",
   },
   inputContainer: {
-    backgroundColor: "rgba(255, 255, 255, 0.95)",
+    backgroundColor: OnboardingColors.background.input,
     borderRadius: 16,
     padding: 4,
     marginBottom: 16,
+    borderWidth: 0.5,
+    borderColor: OnboardingColors.border.input,
   },
   textInput: {
     minHeight: 200,
     fontSize: 16,
-    color: "#2D3748",
+    color: OnboardingColors.text.primary,
     lineHeight: 24,
     padding: 16,
-    fontFamily: "System",
+    fontFamily: "Fraunces",
   },
   inputHint: {
     fontSize: 14,
-    color: "#FFFFFF",
+    color: OnboardingColors.text.tertiary,
     textAlign: "center",
     lineHeight: 20,
     marginTop: 8,
+    fontFamily: "Fraunces",
   },
   nextButton: {
     flexDirection: "row",
-    backgroundColor: "#9440dd",
-    borderRadius: 16,
-    paddingVertical: 18,
-    paddingHorizontal: 32,
     alignItems: "center",
     justifyContent: "center",
-    shadowColor: "#9440dd",
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.3,
-    shadowRadius: 8,
-    elevation: 8,
+    borderRadius: 20,
+    overflow: "hidden",
+    backgroundColor: OnboardingColors.background.input, // Box background
+    paddingVertical: 14,
+    paddingHorizontal: 32,
+    shadowColor: OnboardingColors.shadow.primary,
+    shadowOffset: OnboardingColors.shadow.offset,
+    shadowOpacity: OnboardingColors.shadow.opacity.light,
+    shadowRadius: OnboardingColors.shadow.radius.small,
+    elevation: OnboardingColors.shadow.elevation.light,
     marginTop: 24,
   },
   nextButtonDisabled: {
-    backgroundColor: "#9CA3AF",
-    shadowOpacity: 0.1,
+    opacity: OnboardingColors.opacity.buttonDisabled,
   },
   nextButtonText: {
+    fontSize: 20, // Increased from 16
+    color: OnboardingColors.text.button,
+    fontFamily: "Fraunces",
+    fontWeight: "300", // Reduced thickness from 400
+    marginRight: 8,
+    letterSpacing: 0.5, // Add slight spacing for cleaner look
+    textAlign: "center",
+    flex: 1,
+  },
+  centeredNextButton: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    width: width - 48,
+    height: 48,
+    borderRadius: 20,
+    backgroundColor: OnboardingColors.background.input,
+    borderWidth: 0.5,
+    borderColor: OnboardingColors.border.input,
+    shadowColor: OnboardingColors.shadow.primary,
+    shadowOffset: OnboardingColors.shadow.offset,
+    shadowOpacity: OnboardingColors.shadow.opacity.light,
+    shadowRadius: OnboardingColors.shadow.radius.small,
+    elevation: OnboardingColors.shadow.elevation.light,
+    marginBottom: 8,
+  },
+  centeredNextButtonText: {
     fontSize: 16,
-    color: "#FFF",
-    fontFamily: "System",
-    fontWeight: "600",
+    color: OnboardingColors.text.button,
+    fontFamily: "Fraunces",
+    fontWeight: "400",
     marginRight: 8,
   },
 });

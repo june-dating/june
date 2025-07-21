@@ -19,6 +19,7 @@ import Animated, {
   withTiming,
 } from "react-native-reanimated";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
+import { OnboardingColors } from "../colors/index";
 import ProgressBar from "../components/ProgressBar";
 
 const { width, height } = Dimensions.get("window");
@@ -47,6 +48,8 @@ export default function GenderScreen() {
     } else {
       setShowCustomInput(false);
       setCustomGender("");
+      // Auto-navigate for male/female selections
+      router.push("/onboarding/looking-for");
     }
   };
 
@@ -93,10 +96,14 @@ export default function GenderScreen() {
 
   return (
     <View style={styles.container}>
-      <StatusBar barStyle="light-content" />
+      <StatusBar barStyle={OnboardingColors.statusBar} />
 
       <LinearGradient
-        colors={["#3d1a5a", "#5a2a7a", "#8a4bb8"]}
+        colors={[
+          OnboardingColors.gradient.primary,
+          OnboardingColors.gradient.secondary,
+          OnboardingColors.gradient.tertiary,
+        ]}
         style={styles.gradient}
         start={{ x: 1, y: 1.3 }}
         end={{ x: 0, y: 0 }}
@@ -139,8 +146,8 @@ export default function GenderScreen() {
                   size={24}
                   color={
                     selectedGender === "male"
-                      ? "#FFF"
-                      : "rgba(255, 255, 255, 0.7)"
+                      ? OnboardingColors.icon.primary
+                      : OnboardingColors.icon.secondary
                   }
                 />
                 <Text
@@ -166,8 +173,8 @@ export default function GenderScreen() {
                   size={24}
                   color={
                     selectedGender === "female"
-                      ? "#FFF"
-                      : "rgba(255, 255, 255, 0.7)"
+                      ? OnboardingColors.icon.primary
+                      : OnboardingColors.icon.secondary
                   }
                 />
                 <Text
@@ -193,8 +200,8 @@ export default function GenderScreen() {
                   size={24}
                   color={
                     selectedGender === "other"
-                      ? "#FFF"
-                      : "rgba(255, 255, 255, 0.7)"
+                      ? OnboardingColors.icon.primary
+                      : OnboardingColors.icon.secondary
                   }
                 />
                 <Text
@@ -219,7 +226,7 @@ export default function GenderScreen() {
                     value={customGender}
                     onChangeText={handleCustomGenderChange}
                     placeholder="Enter your gender identity"
-                    placeholderTextColor="rgba(255, 255, 255, 0.6)"
+                    placeholderTextColor={OnboardingColors.text.tertiary}
                     autoFocus
                     autoCapitalize="words"
                     returnKeyType="done"
@@ -242,8 +249,8 @@ export default function GenderScreen() {
                   <LinearGradient
                     colors={
                       isValid
-                        ? ["#FFF", "#F0F0F0"]
-                        : ["rgba(255,255,255,0.3)", "rgba(255,255,255,0.2)"]
+                        ? OnboardingColors.background.buttonEnabled
+                        : OnboardingColors.background.buttonDisabled
                     }
                     style={styles.buttonGradient}
                   >
@@ -258,7 +265,11 @@ export default function GenderScreen() {
                     <Ionicons
                       name="arrow-forward"
                       size={20}
-                      color={isValid ? "#8a4bb8" : "rgba(255,255,255,0.5)"}
+                      color={
+                        isValid
+                          ? OnboardingColors.icon.button
+                          : OnboardingColors.icon.buttonDisabled
+                      }
                     />
                   </LinearGradient>
                 </TouchableOpacity>
@@ -295,81 +306,87 @@ const styles = StyleSheet.create({
   },
   title: {
     fontSize: 36,
-    fontWeight: "800",
-    color: "#FFF",
+    fontWeight: "600",
+    color: OnboardingColors.text.primary,
     marginBottom: 12,
     textAlign: "left",
     lineHeight: 44,
+    fontFamily: "Fraunces",
   },
   subtitle: {
     fontSize: 16,
-    color: "rgba(255, 255, 255, 0.8)",
+    color: OnboardingColors.text.secondary,
     textAlign: "left",
     lineHeight: 24,
     maxWidth: "85%",
+    fontFamily: "Fraunces",
+    fontWeight: "300",
   },
   optionsContainer: {
     flex: 1,
     justifyContent: "flex-start",
-    paddingTop: 20,
+    paddingTop: 40,
     minHeight: 120,
   },
   genderOption: {
-    backgroundColor: "rgba(255, 255, 255, 0.15)",
+    backgroundColor: OnboardingColors.background.input,
     borderRadius: 20,
     borderWidth: 2,
-    borderColor: "rgba(255, 255, 255, 0.2)",
+    borderColor: OnboardingColors.border.input,
     paddingVertical: 20,
     paddingHorizontal: 24,
     marginBottom: 16,
     flexDirection: "row",
     alignItems: "center",
-    shadowColor: "#8a4bb8",
-    shadowOffset: { width: 0, height: 8 },
-    shadowOpacity: 0.3,
-    shadowRadius: 16,
-    elevation: 8,
+    shadowColor: OnboardingColors.shadow.primary,
+    shadowOffset: OnboardingColors.shadow.offset,
+    shadowOpacity: OnboardingColors.shadow.opacity.light,
+    shadowRadius: OnboardingColors.shadow.radius.medium,
+    elevation: OnboardingColors.shadow.elevation.light,
     maxWidth: "90%",
   },
   genderOptionSelected: {
-    backgroundColor: "rgba(255, 255, 255, 0.3)",
-    borderColor: "#FFF",
-    shadowOpacity: 0.4,
-    shadowRadius: 12,
-    elevation: 8,
+    backgroundColor: OnboardingColors.background.inputSelected,
+    borderColor: OnboardingColors.border.inputSelected,
+    shadowOpacity: OnboardingColors.shadow.opacity.medium,
+    shadowRadius: OnboardingColors.shadow.radius.small,
+    elevation: OnboardingColors.shadow.elevation.light,
   },
   genderText: {
     fontSize: 18,
-    fontWeight: "600",
-    color: "rgba(255, 255, 255, 0.8)",
+    fontWeight: "300",
+    color: OnboardingColors.text.secondary,
     marginLeft: 16,
+    fontFamily: "Fraunces",
   },
   genderTextSelected: {
-    color: "#FFF",
-    fontWeight: "700",
+    color: OnboardingColors.text.primary,
+    fontWeight: "300",
+    fontFamily: "Fraunces",
   },
   customInputContainer: {
     marginTop: 8,
     marginBottom: 20,
   },
   inputWrapper: {
-    backgroundColor: "rgba(255, 255, 255, 0.15)",
+    backgroundColor: OnboardingColors.background.input,
     borderRadius: 20,
     borderWidth: 2,
-    borderColor: "rgba(255, 255, 255, 0.2)",
+    borderColor: OnboardingColors.border.input,
     paddingHorizontal: 24,
     paddingVertical: 20,
-    shadowColor: "#8a4bb8",
-    shadowOffset: { width: 0, height: 8 },
-    shadowOpacity: 0.3,
-    shadowRadius: 16,
-    elevation: 8,
+    shadowColor: OnboardingColors.shadow.primary,
+    shadowOffset: OnboardingColors.shadow.offset,
+    shadowOpacity: OnboardingColors.shadow.opacity.light,
+    shadowRadius: OnboardingColors.shadow.radius.medium,
+    elevation: OnboardingColors.shadow.elevation.light,
     maxWidth: "90%",
   },
   input: {
     fontSize: 18,
-    color: "#FFF",
-    fontWeight: "600",
+    color: OnboardingColors.text.primary,
+    fontWeight: "300",
+    fontFamily: "Fraunces",
   },
   buttonContainer: {
     alignItems: "flex-end",
@@ -377,17 +394,17 @@ const styles = StyleSheet.create({
     marginBottom: 40,
   },
   buttonWrapper: {
-    shadowColor: "#8a4bb8",
-    shadowOffset: { width: 0, height: 8 },
-    shadowOpacity: 0.4,
-    elevation: 12,
+    shadowColor: OnboardingColors.shadow.primary,
+    shadowOffset: OnboardingColors.shadow.offset,
+    shadowOpacity: OnboardingColors.shadow.opacity.medium,
+    elevation: OnboardingColors.shadow.elevation.medium,
   },
   button: {
     borderRadius: 20,
     overflow: "hidden",
   },
   buttonDisabled: {
-    opacity: 0.6,
+    opacity: OnboardingColors.opacity.buttonDisabled,
   },
   buttonGradient: {
     flexDirection: "row",
@@ -399,10 +416,13 @@ const styles = StyleSheet.create({
   buttonText: {
     fontSize: 18,
     fontWeight: "700",
-    color: "#8a4bb8",
+    color: OnboardingColors.text.button,
     marginRight: 8,
+    fontFamily: "Fraunces",
   },
   buttonTextDisabled: {
-    color: "rgba(255, 255, 255, 0.5)",
+    color: OnboardingColors.text.buttonDisabled,
+    fontWeight: "700",
+    fontFamily: "Fraunces",
   },
 });

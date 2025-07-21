@@ -15,6 +15,7 @@ export default function RootLayout() {
   const [loaded] = useFonts({
     SpaceMono: require("../assets/fonts/SpaceMono-Regular.ttf"),
     Mak: require("../assets/fonts/MAK-bold.otf"),
+    Fraunces: require("../assets/fonts/Fraunces-VariableFont_SOFT,WONK,opsz,wght.ttf"),
   });
 
   if (!loaded) {
@@ -27,14 +28,15 @@ export default function RootLayout() {
       <Stack screenOptions={{ headerShown: false }}>
         {/* Main App Screens */}
         <Stack.Screen name="index" />
+        <Stack.Screen name="access" />
         <Stack.Screen name="juneconvo" />
         <Stack.Screen name="signup" />
         <Stack.Screen name="photo-upload" />
-        <Stack.Screen name="profile-screen" />
         <Stack.Screen name="dashboard" />
         <Stack.Screen name="chat-screen" />
         <Stack.Screen name="gpt" />
-
+        {/* Tabs Navigator */}
+        <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
         {/* Onboarding Screens */}
         <Stack.Screen name="onboarding/name" />
         <Stack.Screen name="onboarding/birthday" />
@@ -42,7 +44,6 @@ export default function RootLayout() {
         <Stack.Screen name="onboarding/looking-for" />
         <Stack.Screen name="onboarding/socials" />
         <Stack.Screen name="onboarding/phone" />
-
         <Stack.Screen name="+not-found" />
       </Stack>
       <StatusBar style="auto" hidden={true} />

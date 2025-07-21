@@ -7,6 +7,7 @@ import {
   Keyboard,
   KeyboardAvoidingView,
   Platform,
+  ScrollView,
   StatusBar,
   StyleSheet,
   Text,
@@ -15,17 +16,13 @@ import {
   TouchableWithoutFeedback,
   View,
 } from "react-native";
-import Animated, {
-  useAnimatedStyle,
-  useSharedValue,
-  withTiming,
-} from "react-native-reanimated";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
+import { OnboardingColors } from "../colors/index";
 import ProgressBar from "../components/ProgressBar";
 
 const { width, height } = Dimensions.get("window");
 
-type SocialPlatform = "instagram" | "snapchat" | "twitter";
+type SocialPlatform = "instagram" | "twitter" | "linkedin";
 
 interface SocialData {
   username: string;
@@ -39,32 +36,23 @@ export default function SocialsScreen() {
     Record<SocialPlatform, SocialData>
   >({
     instagram: { username: "", isValid: false, isFocused: false },
-    snapchat: { username: "", isValid: false, isFocused: false },
     twitter: { username: "", isValid: false, isFocused: false },
+    linkedin: { username: "", isValid: false, isFocused: false },
   });
-  const [isAnyValid, setIsAnyValid] = useState(false);
+  const [isAnyValid, setIsAnyValid] = useState(true);
   const [keyboardHeight, setKeyboardHeight] = useState(0);
   const [isKeyboardVisible, setIsKeyboardVisible] = useState(false);
-
-  // Animation values
-  const titleOpacity = useSharedValue(0);
-  const subtitleOpacity = useSharedValue(0);
-  const platformsOpacity = useSharedValue(0);
-  const buttonScale = useSharedValue(1);
 
   // Refs for text inputs
   const inputRefs = useRef<Record<SocialPlatform, TextInput | null>>({
     instagram: null,
-    snapchat: null,
     twitter: null,
+    linkedin: null,
   });
 
-  useEffect(() => {
-    // Animate elements on mount with staggered timing
-    titleOpacity.value = withTiming(1, { duration: 600 });
-    subtitleOpacity.value = withTiming(1, { duration: 800 });
-    platformsOpacity.value = withTiming(1, { duration: 1000 });
+  const scrollViewRef = useRef<ScrollView>(null);
 
+  useEffect(() => {
     // Keyboard handling
     const keyboardWillShow = (event: any) => {
       const keyboardHeight = event.endCoordinates.height;
@@ -102,9 +90,8 @@ export default function SocialsScreen() {
         [platform]: { ...prev[platform], ...updates },
       };
 
-      // Check if any platform has valid data
-      const hasValid = Object.values(newData).some((data) => data.isValid);
-      setIsAnyValid(hasValid);
+      // Always enable the button
+      setIsAnyValid(true);
 
       return newData;
     });
@@ -124,12 +111,12 @@ export default function SocialsScreen() {
         trimmed.length <= 30 &&
         validPattern.test(trimmed)
       );
-    } else if (platform === "snapchat") {
-      // Snapchat allows letters, numbers, dots, underscores, hyphens
-      const validPattern = /^[a-zA-Z0-9._-]+$/;
+    } else if (platform === "linkedin") {
+      // LinkedIn allows letters, numbers, hyphens
+      const validPattern = /^[a-zA-Z0-9-]+$/;
       return (
         trimmed.length >= 3 &&
-        trimmed.length <= 15 &&
+        trimmed.length <= 30 &&
         validPattern.test(trimmed)
       );
     }
@@ -154,6 +141,11 @@ export default function SocialsScreen() {
         inputRefs.current[key as SocialPlatform]?.blur();
       }
     });
+
+    // Scroll to the focused input after a short delay, but not all the way to the end
+    setTimeout(() => {
+      scrollViewRef.current?.scrollTo({ y: 100, animated: true });
+    }, 300);
   };
 
   const handleInputBlur = (platform: SocialPlatform) => {
@@ -180,10 +172,10 @@ export default function SocialsScreen() {
     switch (platform) {
       case "instagram":
         return "logo-instagram";
-      case "snapchat":
-        return "logo-snapchat";
       case "twitter":
         return "logo-twitter";
+      case "linkedin":
+        return "logo-linkedin";
       default:
         return "logo-instagram";
     }
@@ -192,11 +184,11 @@ export default function SocialsScreen() {
   const getPlatformName = (platform: SocialPlatform) => {
     switch (platform) {
       case "instagram":
-        return "Instagram";
-      case "snapchat":
-        return "Snapchat";
+        return "instagram";
       case "twitter":
-        return "Twitter/X";
+        return "twitter";
+      case "linkedin":
+        return "linkedin";
       default:
         return "Instagram";
     }
@@ -205,38 +197,26 @@ export default function SocialsScreen() {
   const getPlatformColor = (platform: SocialPlatform) => {
     switch (platform) {
       case "instagram":
-        return "#E4405F";
-      case "snapchat":
-        return "#FFFC00";
+        return OnboardingColors.social.instagram;
       case "twitter":
-        return "#1DA1F2";
+        return OnboardingColors.social.twitter;
+      case "linkedin":
+        return OnboardingColors.social.linkedin;
       default:
-        return "#E4405F";
+        return OnboardingColors.social.instagram;
     }
   };
 
-  const animatedTitleStyle = useAnimatedStyle(() => ({
-    opacity: titleOpacity.value,
-  }));
-
-  const animatedSubtitleStyle = useAnimatedStyle(() => ({
-    opacity: subtitleOpacity.value,
-  }));
-
-  const animatedPlatformsStyle = useAnimatedStyle(() => ({
-    opacity: platformsOpacity.value,
-  }));
-
-  const animatedButtonStyle = useAnimatedStyle(() => ({
-    transform: [{ scale: buttonScale.value }],
-  }));
-
   return (
     <View style={styles.container}>
-      <StatusBar barStyle="light-content" />
+      <StatusBar barStyle={OnboardingColors.statusBar} />
 
       <LinearGradient
-        colors={["#3d1a5a", "#5a2a7a", "#8a4bb8"]}
+        colors={[
+          OnboardingColors.gradient.primary,
+          OnboardingColors.gradient.secondary,
+          OnboardingColors.gradient.tertiary,
+        ]}
         style={styles.gradient}
         start={{ x: 1, y: 1.3 }}
         end={{ x: 0, y: 0 }}
@@ -244,31 +224,37 @@ export default function SocialsScreen() {
         <KeyboardAvoidingView
           behavior={Platform.OS === "ios" ? "padding" : "height"}
           style={styles.keyboardView}
-          keyboardVerticalOffset={Platform.OS === "ios" ? 100 : 0}
+          keyboardVerticalOffset={Platform.OS === "ios" ? 0 : 0}
         >
           <TouchableWithoutFeedback onPress={dismissKeyboard}>
             <View style={[styles.content, { paddingTop: insets.top + 20 }]}>
-              {/* Progress Bar - Top Left (F-Pattern Start) */}
-              <View style={styles.progressContainer}>
-                <ProgressBar progress={70} step={5} totalSteps={6} />
-              </View>
-
-              {/* Header - Top Left (F-Pattern Start) */}
-              <Animated.View style={[styles.header, animatedTitleStyle]}>
-                <Text style={styles.title}>Connect your socials</Text>
-                <Animated.View style={animatedSubtitleStyle}>
-                  <Text style={styles.subtitle}>
-                    Share your social media to connect with others
-                  </Text>
-                </Animated.View>
-              </Animated.View>
-
-              {/* Social Platforms - Left Side (F-Pattern Middle) */}
-              <Animated.View
-                style={[styles.platformsContainer, animatedPlatformsStyle]}
+              <ScrollView
+                ref={scrollViewRef}
+                style={styles.scrollView}
+                contentContainerStyle={styles.scrollContent}
+                showsVerticalScrollIndicator={false}
+                keyboardShouldPersistTaps="handled"
+                bounces={false}
+                overScrollMode="never"
               >
-                {(Object.keys(socialData) as SocialPlatform[]).map(
-                  (platform) => {
+                {/* Progress Bar - Top Left */}
+                <View style={styles.progressContainer}>
+                  <ProgressBar progress={70} step={5} totalSteps={6} />
+                </View>
+
+                {/* Header */}
+                <View style={styles.header}>
+                  <Text style={styles.title}>Add your socials</Text>
+                  <Text style={styles.subtitle}>
+                    This will help June learn more about you.
+                  </Text>
+                </View>
+
+                {/* Social Platforms */}
+                <View style={styles.platformsContainer}>
+                  {(
+                    ["instagram", "twitter", "linkedin"] as SocialPlatform[]
+                  ).map((platform) => {
                     const data = socialData[platform];
                     const isSelected = data.isFocused || data.isValid;
                     const isTyping = data.isFocused;
@@ -293,36 +279,69 @@ export default function SocialsScreen() {
                             name={getPlatformIcon(platform)}
                             size={20}
                             color={
-                              isSelected ? "#FFF" : "rgba(255, 255, 255, 0.7)"
+                              isSelected
+                                ? OnboardingColors.icon.primary
+                                : OnboardingColors.icon.secondary
                             }
                           />
                         </View>
 
                         <View style={styles.platformContent}>
-                          <TextInput
-                            ref={(ref) => {
-                              inputRefs.current[platform] = ref;
+                          <View
+                            style={{
+                              flexDirection: "row",
+                              alignItems: "center",
                             }}
-                            style={[
-                              styles.platformInput,
-                              isSelected && styles.platformInputSelected,
-                            ]}
-                            value={data.username}
-                            onChangeText={(text) =>
-                              handleUsernameChange(text, platform)
-                            }
-                            onFocus={() => handleInputFocus(platform)}
-                            onBlur={() => handleInputBlur(platform)}
-                            placeholder={`${
-                              platform.charAt(0).toUpperCase() +
-                              platform.slice(1)
-                            }`}
-                            placeholderTextColor="rgba(255, 255, 255, 0.5)"
-                            autoCapitalize="none"
-                            autoCorrect={false}
-                            returnKeyType="done"
-                            onSubmitEditing={dismissKeyboard}
-                          />
+                          >
+                            {(platform === "instagram" ||
+                              platform === "twitter") && (
+                              <Text
+                                style={{
+                                  color: OnboardingColors.text.platformInput,
+                                  fontSize: 18,
+                                  fontFamily: "Fraunces",
+                                  marginRight: 2,
+                                }}
+                              >
+                                @
+                              </Text>
+                            )}
+                            <TextInput
+                              ref={(ref) => {
+                                inputRefs.current[platform] = ref;
+                              }}
+                              style={[
+                                styles.platformInput,
+                                isSelected && styles.platformInputSelected,
+                              ]}
+                              value={data.username}
+                              onChangeText={(text) =>
+                                handleUsernameChange(text, platform)
+                              }
+                              onFocus={() => handleInputFocus(platform)}
+                              onBlur={() => handleInputBlur(platform)}
+                              placeholder={platform}
+                              placeholderTextColor={
+                                OnboardingColors.text.quaternary
+                              }
+                              autoCapitalize="none"
+                              autoCorrect={false}
+                              returnKeyType="done"
+                              onSubmitEditing={dismissKeyboard}
+                            />
+                          </View>
+                          {platform === "instagram" && (
+                            <Text
+                              style={{
+                                color: OnboardingColors.text.quaternary,
+                                fontSize: 12,
+                                marginTop: 2,
+                                fontFamily: "Fraunces",
+                              }}
+                            >
+                              required
+                            </Text>
+                          )}
                         </View>
 
                         {data.isValid && (
@@ -330,59 +349,60 @@ export default function SocialsScreen() {
                             <Ionicons
                               name="checkmark-circle"
                               size={20}
-                              color="#FFF"
+                              color={OnboardingColors.icon.checkmark}
                             />
                           </View>
                         )}
                       </TouchableOpacity>
                     );
-                  }
-                )}
-              </Animated.View>
-
-              {/* Next Button - Bottom Right (F-Pattern End) - Hidden when keyboard is visible */}
-              {!isKeyboardVisible && (
-                <View style={styles.buttonContainer}>
-                  <Animated.View
-                    style={[styles.buttonWrapper, animatedButtonStyle]}
-                  >
-                    <TouchableOpacity
-                      style={[
-                        styles.button,
-                        !isAnyValid && styles.buttonDisabled,
-                      ]}
-                      onPress={handleNext}
-                      disabled={!isAnyValid}
-                      activeOpacity={0.8}
-                    >
-                      <LinearGradient
-                        colors={
-                          isAnyValid
-                            ? ["#FFF", "#F0F0F0"]
-                            : ["rgba(255,255,255,0.3)", "rgba(255,255,255,0.2)"]
-                        }
-                        style={styles.buttonGradient}
-                      >
-                        <Text
-                          style={[
-                            styles.buttonText,
-                            !isAnyValid && styles.buttonTextDisabled,
-                          ]}
-                        >
-                          Next
-                        </Text>
-                        <Ionicons
-                          name="arrow-forward"
-                          size={20}
-                          color={
-                            isAnyValid ? "#8a4bb8" : "rgba(255,255,255,0.5)"
-                          }
-                        />
-                      </LinearGradient>
-                    </TouchableOpacity>
-                  </Animated.View>
+                  })}
                 </View>
-              )}
+
+                {/* Spacer for keyboard */}
+                <View style={{ height: 100 }} />
+              </ScrollView>
+
+              {/* Next Button - Fixed at bottom */}
+              <View style={styles.buttonContainer}>
+                <View style={styles.buttonWrapper}>
+                  <TouchableOpacity
+                    style={[
+                      styles.button,
+                      !isAnyValid && styles.buttonDisabled,
+                    ]}
+                    onPress={handleNext}
+                    disabled={!isAnyValid}
+                    activeOpacity={0.8}
+                  >
+                    <LinearGradient
+                      colors={
+                        isAnyValid
+                          ? OnboardingColors.background.buttonEnabled
+                          : OnboardingColors.background.buttonDisabled
+                      }
+                      style={styles.buttonGradient}
+                    >
+                      <Text
+                        style={[
+                          styles.buttonText,
+                          !isAnyValid && styles.buttonTextDisabled,
+                        ]}
+                      >
+                        Next
+                      </Text>
+                      <Ionicons
+                        name="arrow-forward"
+                        size={20}
+                        color={
+                          isAnyValid
+                            ? OnboardingColors.icon.button
+                            : OnboardingColors.icon.buttonDisabled
+                        }
+                      />
+                    </LinearGradient>
+                  </TouchableOpacity>
+                </View>
+              </View>
             </View>
           </TouchableWithoutFeedback>
         </KeyboardAvoidingView>
@@ -404,8 +424,12 @@ const styles = StyleSheet.create({
   content: {
     flex: 1,
     paddingHorizontal: 24,
-    paddingBottom: 40,
-    justifyContent: "space-between",
+  },
+  scrollView: {
+    flex: 1,
+  },
+  scrollContent: {
+    paddingBottom: 0,
   },
   progressContainer: {
     marginBottom: 32,
@@ -415,74 +439,77 @@ const styles = StyleSheet.create({
   },
   title: {
     fontSize: 36,
-    fontWeight: "800",
-    color: "#FFF",
+    fontWeight: "600",
+    color: OnboardingColors.text.primary,
     marginBottom: 12,
     textAlign: "left",
     lineHeight: 44,
+    fontFamily: "Fraunces",
   },
   subtitle: {
-    fontSize: 16,
-    color: "rgba(255, 255, 255, 0.8)",
+    fontSize: 14,
+    color: OnboardingColors.text.secondary,
     textAlign: "left",
     lineHeight: 24,
     maxWidth: "85%",
+    fontFamily: "Fraunces",
+    fontWeight: "300",
   },
   platformsContainer: {
-    flex: 1,
-    justifyContent: "flex-start",
-    paddingTop: 10,
+    paddingTop: 30,
     minHeight: 200,
-    paddingBottom: 20,
   },
   platformCard: {
-    backgroundColor: "rgba(255, 255, 255, 0.15)",
+    backgroundColor: OnboardingColors.background.platformCard,
     borderRadius: 20,
     borderWidth: 2,
-    borderColor: "rgba(255, 255, 255, 0.2)",
+    borderColor: OnboardingColors.border.input,
     paddingVertical: 16,
     paddingHorizontal: 20,
     marginBottom: 16,
     flexDirection: "row",
     alignItems: "center",
-    shadowColor: "#8a4bb8",
-    shadowOffset: { width: 0, height: 8 },
-    shadowOpacity: 0.3,
-    shadowRadius: 16,
-    elevation: 8,
+    shadowColor: OnboardingColors.shadow.primary,
+    shadowOffset: OnboardingColors.shadow.offset,
+    shadowOpacity: OnboardingColors.shadow.opacity.light,
+    shadowRadius: OnboardingColors.shadow.radius.medium,
+    elevation: OnboardingColors.shadow.elevation.light,
     maxWidth: "90%",
   },
   platformCardSelected: {
-    backgroundColor: "rgba(255, 255, 255, 0.3)",
-    borderColor: "#FFF",
-    shadowOpacity: 0.4,
-    shadowRadius: 12,
-    elevation: 8,
+    backgroundColor: OnboardingColors.background.platformCardSelected,
+    borderColor: OnboardingColors.border.platformCardSelected,
+    shadowOpacity: OnboardingColors.shadow.opacity.light,
+    shadowRadius: OnboardingColors.shadow.radius.small,
+    elevation: OnboardingColors.shadow.elevation.light,
   },
   platformIconContainer: {
     width: 36,
     height: 36,
     borderRadius: 10,
-    backgroundColor: "rgba(255, 255, 255, 0.1)",
+    backgroundColor: OnboardingColors.background.platformIconContainer,
     alignItems: "center",
     justifyContent: "center",
     marginRight: 16,
   },
   platformIconContainerTyping: {
-    backgroundColor: "rgba(255, 255, 255, 0.2)",
+    backgroundColor: OnboardingColors.background.platformIconContainerTyping,
   },
   platformContent: {
     flex: 1,
   },
   platformInput: {
     fontSize: 18,
-    color: "rgba(255, 255, 255, 0.6)",
-    fontWeight: "500",
+    color: OnboardingColors.text.platformInput,
+    fontWeight: "300",
     paddingVertical: 0,
     paddingHorizontal: 0,
+    fontFamily: "Fraunces",
   },
   platformInputSelected: {
-    color: "#FFF",
+    color: OnboardingColors.text.platformInputSelected,
+    fontFamily: "Fraunces",
+    fontWeight: "300",
   },
   validationIcon: {
     marginLeft: 12,
@@ -493,17 +520,17 @@ const styles = StyleSheet.create({
     marginBottom: 40,
   },
   buttonWrapper: {
-    shadowColor: "#8a4bb8",
-    shadowOffset: { width: 0, height: 8 },
-    shadowOpacity: 0.4,
-    elevation: 12,
+    shadowColor: OnboardingColors.shadow.primary,
+    shadowOffset: OnboardingColors.shadow.offset,
+    shadowOpacity: OnboardingColors.shadow.opacity.medium,
+    elevation: OnboardingColors.shadow.elevation.medium,
   },
   button: {
     borderRadius: 20,
     overflow: "hidden",
   },
   buttonDisabled: {
-    opacity: 0.6,
+    opacity: OnboardingColors.opacity.buttonDisabled,
   },
   buttonGradient: {
     flexDirection: "row",
@@ -515,10 +542,13 @@ const styles = StyleSheet.create({
   buttonText: {
     fontSize: 18,
     fontWeight: "700",
-    color: "#8a4bb8",
+    color: OnboardingColors.text.button,
     marginRight: 8,
+    fontFamily: "Fraunces",
   },
   buttonTextDisabled: {
-    color: "rgba(255, 255, 255, 0.5)",
+    color: OnboardingColors.text.buttonDisabled,
+    fontWeight: "700",
+    fontFamily: "Fraunces",
   },
 });

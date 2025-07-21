@@ -1,7 +1,7 @@
 import { Ionicons } from "@expo/vector-icons";
 import { LinearGradient } from "expo-linear-gradient";
 import { router } from "expo-router";
-import React, { useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import {
   Dimensions,
   KeyboardAvoidingView,
@@ -20,6 +20,7 @@ import Animated, {
   withTiming,
 } from "react-native-reanimated";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
+import { OnboardingColors } from "../colors/index";
 import ProgressBar from "../components/ProgressBar";
 
 const { width, height } = Dimensions.get("window");
@@ -30,6 +31,7 @@ export default function PhoneScreen() {
   const [isValid, setIsValid] = useState(false);
   const [showVerification, setShowVerification] = useState(false);
   const [verificationCode, setVerificationCode] = useState("");
+  const verificationInputRef = useRef<TextInput>(null);
 
   const buttonScale = useSharedValue(1);
   const inputOpacity = useSharedValue(0);
@@ -106,7 +108,7 @@ export default function PhoneScreen() {
     if (isValid && !showVerification) {
       animateToVerification();
     } else if (showVerification && verificationCode.length === 6) {
-      router.push("/juneconvo");
+      router.push("/access");
     }
   };
 
@@ -157,12 +159,23 @@ export default function PhoneScreen() {
     inputOpacity.value = withTiming(1, { duration: 1000 });
   }, []);
 
+  // Focus verification input when screen is shown
+  useEffect(() => {
+    if (showVerification && verificationInputRef.current) {
+      verificationInputRef.current.focus();
+    }
+  }, [showVerification]);
+
   return (
     <View style={styles.container}>
-      <StatusBar barStyle="light-content" />
+      <StatusBar barStyle={OnboardingColors.statusBar} />
 
       <LinearGradient
-        colors={["#3d1a5a", "#5a2a7a", "#8a4bb8"]}
+        colors={[
+          OnboardingColors.gradient.primary,
+          OnboardingColors.gradient.secondary,
+          OnboardingColors.gradient.tertiary,
+        ]}
         style={styles.gradient}
         start={{ x: 1, y: 1.3 }}
         end={{ x: 0, y: 0 }}
@@ -209,14 +222,16 @@ export default function PhoneScreen() {
                 >
                   <View style={styles.inputWrapper}>
                     <View style={styles.countryCode}>
-                      <Text style={styles.countryCodeText}>+1</Text>
+                      <Text style={styles.countryCodeText}>
+                        <Text style={{ fontSize: 23 }}>🇺🇸</Text> +1
+                      </Text>
                     </View>
                     <TextInput
                       style={styles.input}
                       value={phone}
                       onChangeText={handlePhoneChange}
                       placeholder="(555) 123-4567"
-                      placeholderTextColor="rgba(255, 255, 255, 0.6)"
+                      placeholderTextColor={OnboardingColors.text.tertiary}
                       autoFocus
                       autoCapitalize="none"
                       autoCorrect={false}
@@ -228,7 +243,7 @@ export default function PhoneScreen() {
                       <Ionicons
                         name="checkmark-circle"
                         size={24}
-                        color="#FFF"
+                        color={OnboardingColors.icon.checkmark}
                       />
                     </Animated.View>
                   </View>
@@ -247,7 +262,7 @@ export default function PhoneScreen() {
                       <Ionicons
                         name="key"
                         size={20}
-                        color="rgba(255, 255, 255, 0.8)"
+                        color={OnboardingColors.icon.tertiary}
                       />
                     </View>
                     <TextInput
@@ -255,13 +270,15 @@ export default function PhoneScreen() {
                       value={verificationCode}
                       onChangeText={handleVerificationCodeChange}
                       placeholder="Enter 6-digit code"
-                      placeholderTextColor="rgba(255, 255, 255, 0.6)"
-                      autoFocus
+                      placeholderTextColor={OnboardingColors.text.tertiary}
+                      ref={verificationInputRef}
+                      autoFocus={showVerification}
                       autoCapitalize="none"
                       autoCorrect={false}
                       keyboardType="number-pad"
                       maxLength={6}
                     />
+
                     {verificationCode.length === 6 && (
                       <Animated.View
                         style={[styles.checkIcon, animatedCheckStyle]}
@@ -269,7 +286,7 @@ export default function PhoneScreen() {
                         <Ionicons
                           name="checkmark-circle"
                           size={24}
-                          color="#FFF"
+                          color={OnboardingColors.icon.checkmark}
                         />
                       </Animated.View>
                     )}
@@ -302,8 +319,8 @@ export default function PhoneScreen() {
                     colors={
                       (isValid && !showVerification) ||
                       (showVerification && verificationCode.length === 6)
-                        ? ["#FFF", "#F0F0F0"]
-                        : ["rgba(255,255,255,0.3)", "rgba(255,255,255,0.2)"]
+                        ? OnboardingColors.background.buttonEnabled
+                        : OnboardingColors.background.buttonDisabled
                     }
                     style={styles.buttonGradient}
                   >
@@ -322,7 +339,11 @@ export default function PhoneScreen() {
                       <Ionicons
                         name="arrow-forward"
                         size={20}
-                        color={isValid ? "#8a4bb8" : "rgba(255,255,255,0.5)"}
+                        color={
+                          isValid
+                            ? OnboardingColors.icon.button
+                            : OnboardingColors.icon.buttonDisabled
+                        }
                       />
                     )}
                   </LinearGradient>
@@ -357,18 +378,18 @@ const styles = StyleSheet.create({
   },
   progressBackground: {
     height: 4,
-    backgroundColor: "rgba(255, 255, 255, 0.3)",
+    backgroundColor: OnboardingColors.background.progressBackground,
     borderRadius: 2,
     marginBottom: 8,
   },
   progressFill: {
     height: 4,
-    backgroundColor: "#FFF",
+    backgroundColor: OnboardingColors.background.progressFill,
     borderRadius: 2,
   },
   progressText: {
     fontSize: 14,
-    color: "rgba(255, 255, 255, 0.8)",
+    color: OnboardingColors.text.progress,
     textAlign: "right",
     fontWeight: "500",
   },
@@ -377,25 +398,28 @@ const styles = StyleSheet.create({
   },
   title: {
     fontSize: 36,
-    fontWeight: "800",
-    color: "#FFF",
+    fontWeight: "600",
+    color: OnboardingColors.text.primary,
     marginBottom: 12,
     textAlign: "left",
     lineHeight: 44,
+    fontFamily: "Fraunces",
   },
   subtitle: {
     fontSize: 14,
-    color: "rgba(255, 255, 255, 0.8)",
+    color: OnboardingColors.text.secondary,
     textAlign: "left",
     lineHeight: 24,
     maxWidth: "85%",
+    fontWeight: "300",
+    fontFamily: "Fraunces",
   },
   editButton: {
     marginTop: 12,
   },
   editButtonText: {
     fontSize: 16,
-    color: "#FFF",
+    color: OnboardingColors.text.editButton,
     textDecorationLine: "underline",
     fontWeight: "600",
   },
@@ -411,38 +435,42 @@ const styles = StyleSheet.create({
     height: "100%",
   },
   inputWrapper: {
-    backgroundColor: "rgba(255, 255, 255, 0.15)",
+    backgroundColor: OnboardingColors.background.input,
     borderRadius: 20,
     borderWidth: 2,
-    borderColor: "rgba(255, 255, 255, 0.2)",
+    borderColor: OnboardingColors.border.input,
     flexDirection: "row",
     alignItems: "center",
     paddingHorizontal: 24,
     paddingVertical: 20,
     minHeight: 60,
-    shadowColor: "#8a4bb8",
-    shadowOffset: { width: 0, height: 8 },
-    shadowOpacity: 0.3,
-    shadowRadius: 16,
-    elevation: 8,
+    shadowColor: OnboardingColors.shadow.primary,
+    shadowOffset: OnboardingColors.shadow.offset,
+    shadowOpacity: OnboardingColors.shadow.opacity.light,
+    shadowRadius: OnboardingColors.shadow.radius.medium,
+    elevation: OnboardingColors.shadow.elevation.light,
     maxWidth: "90%",
   },
   countryCode: {
     marginRight: 12,
     paddingRight: 12,
     borderRightWidth: 1,
-    borderRightColor: "rgba(255, 255, 255, 0.3)",
+    borderRightColor: OnboardingColors.border.countryCode,
   },
   countryCodeText: {
     fontSize: 18,
-    color: "#FFF",
+    color: OnboardingColors.text.countryCode,
     fontWeight: "600",
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
   },
   input: {
     flex: 1,
     fontSize: 18,
-    color: "#FFF",
-    fontWeight: "600",
+    color: OnboardingColors.text.primary,
+    fontWeight: "300",
+    // fontFamily: "Fraunces",
   },
   checkIcon: {
     marginLeft: 12,
@@ -453,20 +481,20 @@ const styles = StyleSheet.create({
   buttonContainer: {
     alignItems: "flex-end",
     paddingTop: 16,
-    marginBottom: 40,
+    marginBottom: 0,
   },
   buttonWrapper: {
-    shadowColor: "#8a4bb8",
-    shadowOffset: { width: 0, height: 8 },
-    shadowOpacity: 0.4,
-    elevation: 12,
+    shadowColor: OnboardingColors.shadow.primary,
+    shadowOffset: OnboardingColors.shadow.offset,
+    shadowOpacity: OnboardingColors.shadow.opacity.medium,
+    elevation: OnboardingColors.shadow.elevation.medium,
   },
   button: {
     borderRadius: 20,
     overflow: "hidden",
   },
   buttonDisabled: {
-    opacity: 0.6,
+    opacity: OnboardingColors.opacity.buttonDisabled,
   },
   buttonGradient: {
     flexDirection: "row",
@@ -478,10 +506,13 @@ const styles = StyleSheet.create({
   buttonText: {
     fontSize: 18,
     fontWeight: "700",
-    color: "#8a4bb8",
+    color: OnboardingColors.text.button,
     marginRight: 8,
+    fontFamily: "Fraunces",
   },
   buttonTextDisabled: {
-    color: "rgba(255, 255, 255, 0.5)",
+    color: OnboardingColors.text.buttonDisabled,
+    fontWeight: "700",
+    fontFamily: "Fraunces",
   },
 });

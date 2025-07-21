@@ -23,6 +23,7 @@ import Animated, {
   withTiming,
 } from "react-native-reanimated";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
+import { OnboardingColors } from "../colors/index";
 import ProgressBar from "../components/ProgressBar";
 
 const { width, height } = Dimensions.get("window");
@@ -173,10 +174,14 @@ export default function BirthdayScreen() {
 
   return (
     <View style={styles.container}>
-      <StatusBar barStyle="light-content" />
+      <StatusBar barStyle={OnboardingColors.statusBar} />
 
       <LinearGradient
-        colors={["#3d1a5a", "#5a2a7a", "#8a4bb8"]}
+        colors={[
+          OnboardingColors.gradient.primary,
+          OnboardingColors.gradient.secondary,
+          OnboardingColors.gradient.tertiary,
+        ]}
         style={styles.gradient}
         start={{ x: 1, y: 1.3 }}
         end={{ x: 0, y: 0 }}
@@ -217,14 +222,18 @@ export default function BirthdayScreen() {
                   <Ionicons
                     name="calendar"
                     size={24}
-                    color="rgba(255, 255, 255, 0.7)"
+                    color={OnboardingColors.icon.tertiary}
                     style={styles.inputIcon}
                   />
                   <Text style={styles.inputText}>
                     {birthday ? formatDate(birthday) : "MM/DD/YYYY"}
                   </Text>
                   <Animated.View style={[styles.checkIcon, animatedCheckStyle]}>
-                    <Ionicons name="checkmark-circle" size={24} color="#FFF" />
+                    <Ionicons
+                      name="checkmark-circle"
+                      size={24}
+                      color={OnboardingColors.icon.checkmark}
+                    />
                   </Animated.View>
                 </TouchableOpacity>
               </View>
@@ -250,11 +259,7 @@ export default function BirthdayScreen() {
                       <View style={styles.glassSurface}>
                         {/* Subtle gradient overlay */}
                         <LinearGradient
-                          colors={[
-                            "rgba(255, 255, 255, 0.08)",
-                            "rgba(255, 255, 255, 0.12)",
-                            "rgba(255, 255, 255, 0.08)",
-                          ]}
+                          colors={OnboardingColors.background.glassGradient}
                           style={styles.glassGradient}
                         />
 
@@ -293,7 +298,7 @@ export default function BirthdayScreen() {
                           onChange={handleDateChange}
                           maximumDate={new Date()}
                           minimumDate={new Date(1900, 0, 1)}
-                          textColor="#FFF"
+                          textColor={OnboardingColors.text.primary}
                           style={styles.datePicker}
                         />
                       </View>
@@ -317,8 +322,8 @@ export default function BirthdayScreen() {
                   <LinearGradient
                     colors={
                       isValid
-                        ? ["#FFF", "#F0F0F0"]
-                        : ["rgba(255,255,255,0.3)", "rgba(255,255,255,0.2)"]
+                        ? OnboardingColors.background.buttonEnabled
+                        : OnboardingColors.background.buttonDisabled
                     }
                     style={styles.buttonGradient}
                   >
@@ -333,7 +338,11 @@ export default function BirthdayScreen() {
                     <Ionicons
                       name="arrow-forward"
                       size={20}
-                      color={isValid ? "#8a4bb8" : "rgba(255,255,255,0.5)"}
+                      color={
+                        isValid
+                          ? OnboardingColors.icon.button
+                          : OnboardingColors.icon.buttonDisabled
+                      }
                     />
                   </LinearGradient>
                 </TouchableOpacity>
@@ -370,18 +379,21 @@ const styles = StyleSheet.create({
   },
   title: {
     fontSize: 36,
-    fontWeight: "800",
-    color: "#FFF",
+    color: OnboardingColors.text.primary,
     marginBottom: 12,
     textAlign: "left",
     lineHeight: 44,
+    fontFamily: "Fraunces",
+    fontWeight: "600",
   },
   subtitle: {
     fontSize: 16,
-    color: "rgba(255, 255, 255, 0.8)",
+    color: OnboardingColors.text.secondary,
     textAlign: "left",
     lineHeight: 24,
     maxWidth: "85%",
+    fontFamily: "Fraunces",
+    fontWeight: "300",
   },
   pickerSection: {
     flex: 1,
@@ -393,25 +405,25 @@ const styles = StyleSheet.create({
     marginBottom: 0,
   },
   inputWrapper: {
-    backgroundColor: "rgba(255, 255, 255, 0.15)",
+    backgroundColor: OnboardingColors.background.input,
     borderRadius: 20,
     borderWidth: 2,
-    borderColor: "rgba(255, 255, 255, 0.2)",
+    borderColor: OnboardingColors.border.input,
     flexDirection: "row",
     alignItems: "center",
     paddingHorizontal: 24,
     paddingVertical: 20,
     minHeight: 60,
-    shadowColor: "#8a4bb8",
-    shadowOffset: { width: 0, height: 8 },
-    shadowOpacity: 0.3,
-    shadowRadius: 16,
-    elevation: 8,
+    shadowColor: OnboardingColors.shadow.primary,
+    shadowOffset: OnboardingColors.shadow.offset,
+    shadowOpacity: OnboardingColors.shadow.opacity.light,
+    shadowRadius: OnboardingColors.shadow.radius.medium,
+    elevation: OnboardingColors.shadow.elevation.light,
     maxWidth: "90%",
   },
   inputWrapperActive: {
-    borderColor: "rgba(255, 255, 255, 0.5)",
-    backgroundColor: "rgba(255, 255, 255, 0.2)",
+    borderColor: OnboardingColors.border.inputActive,
+    backgroundColor: OnboardingColors.background.inputActive,
   },
   inputIcon: {
     marginRight: 12,
@@ -419,8 +431,9 @@ const styles = StyleSheet.create({
   inputText: {
     flex: 1,
     fontSize: 18,
-    color: "#FFF",
-    fontWeight: "600",
+    color: OnboardingColors.text.primary,
+    fontWeight: "300",
+    fontFamily: "Fraunces",
   },
   checkIcon: {
     marginLeft: 12,
@@ -472,7 +485,7 @@ const styles = StyleSheet.create({
     bottom: 0,
     borderRadius: 24,
     borderWidth: 1,
-    borderColor: "rgba(255, 255, 255, 0.2)",
+    borderColor: OnboardingColors.border.glassBorder,
   },
   innerGlow: {
     position: "absolute",
@@ -481,7 +494,7 @@ const styles = StyleSheet.create({
     right: 1,
     bottom: 1,
     borderRadius: 23,
-    backgroundColor: "rgba(255, 255, 255, 0.05)",
+    backgroundColor: OnboardingColors.background.innerGlow,
   },
   pickerHeader: {
     flexDirection: "row",
@@ -490,23 +503,25 @@ const styles = StyleSheet.create({
     paddingHorizontal: 24,
     paddingVertical: 16,
     borderBottomWidth: 1,
-    borderBottomColor: "rgba(255, 255, 255, 0.1)",
+    borderBottomColor: OnboardingColors.border.pickerHeader,
   },
   headerButton: {
     paddingVertical: 8,
     paddingHorizontal: 10,
     borderRadius: 12,
-    backgroundColor: "rgba(255, 255, 255, 0.1)",
+    backgroundColor: OnboardingColors.background.headerButton,
   },
   headerButtonText: {
-    color: "#FFF",
+    color: OnboardingColors.text.headerButton,
     fontSize: 15,
-    fontWeight: "600",
+    fontWeight: "300",
+    fontFamily: "Fraunces",
   },
   pickerTitle: {
-    color: "#FFF",
+    color: OnboardingColors.text.pickerTitle,
     fontSize: 17,
-    fontWeight: "700",
+    fontWeight: "600",
+    fontFamily: "Fraunces",
   },
   datePickerContainer: {
     paddingHorizontal: 16,
@@ -522,17 +537,17 @@ const styles = StyleSheet.create({
     marginBottom: 40,
   },
   buttonWrapper: {
-    shadowColor: "#8a4bb8",
-    shadowOffset: { width: 0, height: 8 },
-    shadowOpacity: 0.4,
-    elevation: 12,
+    shadowColor: OnboardingColors.shadow.primary,
+    shadowOffset: OnboardingColors.shadow.offset,
+    shadowOpacity: OnboardingColors.shadow.opacity.medium,
+    elevation: OnboardingColors.shadow.elevation.medium,
   },
   button: {
     borderRadius: 20,
     overflow: "hidden",
   },
   buttonDisabled: {
-    opacity: 0.6,
+    opacity: OnboardingColors.opacity.buttonDisabled,
   },
   buttonGradient: {
     flexDirection: "row",
@@ -544,10 +559,13 @@ const styles = StyleSheet.create({
   buttonText: {
     fontSize: 18,
     fontWeight: "700",
-    color: "#8a4bb8",
+    color: OnboardingColors.text.button,
     marginRight: 8,
+    fontFamily: "Fraunces",
   },
   buttonTextDisabled: {
-    color: "rgba(255, 255, 255, 0.5)",
+    color: OnboardingColors.text.buttonDisabled,
+    fontWeight: "700",
+    fontFamily: "Fraunces",
   },
 });

@@ -1,6 +1,7 @@
 "use client";
 
 import { Ionicons } from "@expo/vector-icons";
+import { useFonts } from "expo-font";
 import { LinearGradient } from "expo-linear-gradient";
 import { router } from "expo-router";
 import { useEffect, useRef } from "react";
@@ -25,6 +26,7 @@ import Animated, {
   withTiming,
 } from "react-native-reanimated";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
+import { OnboardingColors } from "../colors";
 
 const { width, height } = Dimensions.get("window");
 
@@ -32,21 +34,36 @@ const { width, height } = Dimensions.get("window");
 const profileData = {
   name: "Alice",
   age: 23,
+  location: "New York, USA", // Added location
   personality: "INFJ | Author | Weekend poet",
-  juneInsight:
-    "Deep listener. Ambivert. Believes in real talk and long walks. Might write you a poem when you're not looking.",
+  juneInsight: [
+    "Deep listener.",
+    "Ambivert.",
+    "Believes in real talk and long walks.",
+    "Might write you a poem when you're not looking.",
+  ], // Now an array for bullet points
+  improvement: [
+    "Be more spontaneous.",
+    "Open up sooner in conversations.",
+    "Try new activities outside your comfort zone.",
+  ],
+  whyDate: [
+    "Genuine and caring nature.",
+    "Great at deep conversations.",
+    "Will surprise you with poetry.",
+  ],
   facePhotos: [
     {
       id: "2",
-      uri: require("../assets/images/aija5.jpg"),
+      uri: require("../../assets/images/aija5.jpg"),
     },
     {
       id: "1",
-      uri: require("../assets/images/img2.jpg"),
+      uri: require("../../assets/images/img2.jpg"),
     },
     {
       id: "3",
-      uri: require("../assets/images/img1.jpg"),
+      uri: require("../../assets/images/img1.jpg"),
     },
     {
       id: "4",
@@ -142,11 +159,11 @@ function ProfileHeader() {
     >
       <View style={styles.profileImageContainer}>
         <LinearGradient
-          colors={["#C6B2FF", "#8B5FBF", "#5E2CA5"]}
+          colors={["#fff", "#fff"]}
           style={styles.profileImageGradient}
         >
           <Image
-            source={require("../assets/images/aija4.png")}
+            source={require("../../assets/images/aija4.png")}
             style={styles.profileImage}
           />
         </LinearGradient>
@@ -154,11 +171,19 @@ function ProfileHeader() {
           <Animated.View style={[styles.profileGlowInner, shimmerStyle]} />
         </View>
       </View>
-
       <Text style={styles.nameAge}>
         {profileData.name}, {profileData.age}
       </Text>
-
+      <View style={styles.locationRow}>
+        <Text>📍</Text>
+        {/* <Ionicons
+          name="location-outline"
+          size={16}
+          color="red"
+          style={{ marginRight: 4 }}
+        /> */}
+        <Text style={styles.locationText}>{profileData.location}</Text>
+      </View>
       <View style={styles.personalityContainer}>
         <Text style={styles.personalityLabel}>{profileData.personality}</Text>
       </View>
@@ -180,7 +205,78 @@ function PersonalitySummary() {
           <Ionicons name="sparkles" size={20} color="#C6B2FF" />
           <Text style={styles.summaryTitle}>June says:</Text>
         </View>
-        <Text style={styles.summaryText}>{profileData.juneInsight}</Text>
+        <View style={{ marginTop: 4 }}>
+          {profileData.juneInsight.map((point, idx) => (
+            <View
+              key={idx}
+              style={{
+                flexDirection: "row",
+                alignItems: "flex-start",
+                marginBottom: 4,
+              }}
+            >
+              <Text
+                style={{
+                  color: "#C6B2FF",
+                  fontSize: 18,
+                  marginRight: 8,
+                  lineHeight: 22,
+                }}
+              >
+                •
+              </Text>
+              <Text style={styles.summaryText}>{point}</Text>
+            </View>
+          ))}
+        </View>
+      </LinearGradient>
+    </Animated.View>
+  );
+}
+
+function InfoBox({
+  title,
+  icon,
+  points,
+  color = "#C6B2FF",
+}: {
+  title: string;
+  icon: any;
+  points: string[];
+  color?: string;
+}) {
+  return (
+    <Animated.View
+      style={styles.summaryContainer}
+      entering={FadeInUp.delay(500).duration(800)}
+    >
+      <LinearGradient
+        colors={["rgba(255, 255, 255, 0.12)", "rgba(255, 255, 255, 0.06)"]}
+        style={styles.summaryCard}
+      >
+        <View style={styles.summaryHeader}>
+          <Ionicons name={icon} size={20} color={color} />
+          <Text style={[styles.summaryTitle, { color }]}>{title}</Text>
+        </View>
+        <View style={{ marginTop: 4 }}>
+          {points.map((point: string, idx: number) => (
+            <View
+              key={idx}
+              style={{
+                flexDirection: "row",
+                alignItems: "flex-start",
+                marginBottom: 4,
+              }}
+            >
+              <Text
+                style={{ color, fontSize: 18, marginRight: 8, lineHeight: 22 }}
+              >
+                •
+              </Text>
+              <Text style={styles.summaryText}>{point}</Text>
+            </View>
+          ))}
+        </View>
       </LinearGradient>
     </Animated.View>
   );
@@ -219,82 +315,28 @@ function FacePhotosCarousel() {
   );
 }
 
-function LifePhotosGrid() {
+function LifePhotosCarousel() {
   return (
     <Animated.View
       style={styles.photosSection}
       entering={FadeInUp.delay(800).duration(800)}
     >
       <Text style={styles.sectionTitle}>Your World</Text>
-      <View style={styles.lifePhotosGrid}>
-        {profileData.lifePhotos.map((item, index) => (
-          <View
-            key={item.id}
-            style={
-              index % 3 === 0 ? styles.lifePhotoLarge : styles.lifePhotoSmall
-            }
-          >
-            <Image source={{ uri: item.uri }} style={styles.lifePhoto} />
-            <LinearGradient
-              colors={["transparent", "rgba(0,0,0,0.2)"]}
-              style={styles.lifePhotoOverlay}
+      <FlatList
+        data={profileData.lifePhotos}
+        renderItem={({ item }) => (
+          <View style={styles.lifePhotoCarouselItem}>
+            <Image
+              source={{ uri: item.uri }}
+              style={styles.lifePhotoCarouselImage}
             />
           </View>
-        ))}
-      </View>
-    </Animated.View>
-  );
-}
-
-function FooterCTA() {
-  const shimmer = useSharedValue(0);
-
-  useEffect(() => {
-    shimmer.value = withRepeat(
-      withTiming(1, { duration: 2000, easing: Easing.linear }),
-      -1,
-      false
-    );
-  }, []);
-
-  const shimmerStyle = useAnimatedStyle(() => ({
-    opacity: shimmer.value * 0.4,
-  }));
-
-  return (
-    <Animated.View
-      style={styles.footerContainer}
-      entering={FadeInUp.delay(1000).duration(800)}
-    >
-      <LinearGradient
-        colors={["rgba(255, 255, 255, 0.1)", "rgba(255, 255, 255, 0.05)"]}
-        style={styles.footerCard}
-      >
-        <Text style={styles.footerTitle}>Ready to be seen by your match?</Text>
-        <TouchableOpacity
-          style={styles.goLiveButton}
-          onPress={() => router.push("/dashboard")}
-          activeOpacity={0.8}
-        >
-          <LinearGradient
-            colors={["#8B5FBF", "#5E2CA5"]}
-            style={styles.goLiveGradient}
-          >
-            <Ionicons
-              name="flash"
-              size={20}
-              color="#FFF"
-              style={{ marginRight: 8 }}
-            />
-            <Text style={styles.goLiveText}>Go Live</Text>
-            <View style={styles.buttonShimmer}>
-              <Animated.View
-                style={[styles.buttonShimmerInner, shimmerStyle]}
-              />
-            </View>
-          </LinearGradient>
-        </TouchableOpacity>
-      </LinearGradient>
+        )}
+        horizontal
+        showsHorizontalScrollIndicator={false}
+        contentContainerStyle={styles.lifePhotoCarouselContent}
+        keyExtractor={(item) => item.id}
+      />
     </Animated.View>
   );
 }
@@ -302,48 +344,57 @@ function FooterCTA() {
 export default function ProfileScreen() {
   const insets = useSafeAreaInsets();
   const scrollViewRef = useRef<ScrollView>(null);
+  const [fontsLoaded] = useFonts({
+    Fraunces: require("../../assets/fonts/Fraunces-VariableFont_SOFT,WONK,opsz,wght.ttf"),
+  });
+  if (!fontsLoaded) return null;
 
   return (
     <View style={styles.container}>
-      <StatusBar barStyle="light-content" />
-
+      <StatusBar barStyle={OnboardingColors.statusBar || "light-content"} />
       <LinearGradient
-        colors={["#3A1B6B", "#5E2CA5", "#8B5FBF"]}
+        colors={[
+          OnboardingColors.gradient.primary,
+          OnboardingColors.gradient.secondary,
+          OnboardingColors.gradient.tertiary,
+        ]}
         style={styles.gradient}
         start={{ x: 0, y: 0 }}
         end={{ x: 1, y: 1 }}
       >
         <StarField />
-
         {/* Edit Button */}
         <TouchableOpacity
           style={[styles.editButton, { top: insets.top + 20 }]}
           onPress={() => router.push("/photo-upload")}
           activeOpacity={0.7}
         >
-          <Ionicons name="create-outline" size={24} color="white" />
+          <Ionicons name="create-outline" size={24} color="#fff" />
         </TouchableOpacity>
-
         <ScrollView
           ref={scrollViewRef}
           style={[styles.scrollView, { paddingTop: insets.top + 20 }]}
           showsVerticalScrollIndicator={false}
           contentContainerStyle={styles.scrollContent}
         >
-          {/* Back Button */}
-          <TouchableOpacity
-            style={styles.backButton}
-            onPress={() => router.back()}
-            activeOpacity={0.7}
-          >
-            <Ionicons name="arrow-back" size={24} color="white" />
-          </TouchableOpacity>
-
+          {/* Removed Back Button */}
           <ProfileHeader />
-          <PersonalitySummary />
+          <View style={{ marginTop: 32 }}>
+            <PersonalitySummary />
+            <InfoBox
+              title="What you should improve?"
+              icon="trending-up-outline"
+              points={profileData.improvement}
+              color="#FFB86C"
+            />
+            <InfoBox
+              title="Why would someone date you?"
+              icon="heart-outline"
+              points={profileData.whyDate}
+              color="#FF6C8C"
+            />
+          </View>
           <FacePhotosCarousel />
-          <LifePhotosGrid />
-          <FooterCTA />
         </ScrollView>
       </LinearGradient>
     </View>
@@ -411,17 +462,19 @@ const styles = StyleSheet.create({
   headerContainer: {
     alignItems: "center",
     marginBottom: 16,
+    marginTop: 48, // Move avatar further down
   },
   profileImageContainer: {
     position: "relative",
     marginBottom: 20,
+    marginTop: 16, // Extra space above avatar
   },
   profileImageGradient: {
     width: 150,
     height: 150,
     borderRadius: 75,
     padding: 4,
-    shadowColor: "#C6B2FF",
+    shadowColor: "#fff",
     shadowOffset: { width: 0, height: 8 },
     shadowOpacity: 0.4,
     shadowRadius: 16,
@@ -449,10 +502,11 @@ const styles = StyleSheet.create({
   },
   nameAge: {
     fontSize: 32,
-    fontWeight: "800",
-    color: "#FFFFFF",
+    fontWeight: "600",
+    color: OnboardingColors.text.primary,
     marginBottom: 8,
     textAlign: "center",
+    fontFamily: "Fraunces",
   },
   personalityContainer: {
     backgroundColor: "rgba(255, 255, 255, 0.1)",
@@ -464,9 +518,10 @@ const styles = StyleSheet.create({
   },
   personalityLabel: {
     fontSize: 14,
-    color: "#C6B2FF",
-    fontWeight: "600",
+    color: OnboardingColors.text.secondary,
+    fontWeight: "400",
     textAlign: "center",
+    fontFamily: "Fraunces",
   },
   summaryContainer: {
     marginBottom: 40,
@@ -505,9 +560,10 @@ const styles = StyleSheet.create({
   sectionTitle: {
     fontSize: 20,
     fontWeight: "700",
-    color: "#FFFFFF",
+    color: OnboardingColors.text.primary,
     marginBottom: 16,
     marginLeft: 4,
+    fontFamily: "Fraunces",
   },
   facePhotosContainer: {
     paddingRight: 24,
@@ -627,5 +683,60 @@ const styles = StyleSheet.create({
     width: "100%",
     height: "100%",
     backgroundColor: "rgba(255, 255, 255, 0.3)",
+  },
+  bottomStatusContainer: {
+    position: "absolute",
+    left: 0,
+    right: 0,
+    alignItems: "center",
+    zIndex: 10,
+  },
+  liveStatusText: {
+    fontSize: 18,
+    fontWeight: "700",
+    color: OnboardingColors.text.button,
+    fontFamily: "Fraunces",
+    backgroundColor: OnboardingColors.background.buttonEnabled[0],
+    paddingHorizontal: 32,
+    paddingVertical: 12,
+    borderRadius: 20,
+    overflow: "hidden",
+  },
+  liveStatusContainer: {
+    alignItems: "center",
+    marginTop: 32,
+    marginBottom: 32,
+  },
+  lifePhotoCarouselContent: {
+    paddingLeft: 4,
+    paddingRight: 24,
+  },
+  lifePhotoCarouselItem: {
+    width: 120,
+    height: 160,
+    borderRadius: 16,
+    overflow: "hidden",
+    marginRight: 14,
+    backgroundColor: OnboardingColors.background.input,
+    borderWidth: 2,
+    borderColor: OnboardingColors.border.input,
+  },
+  lifePhotoCarouselImage: {
+    width: "100%",
+    height: "100%",
+    borderRadius: 16,
+  },
+  locationRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    marginTop: 4,
+    marginBottom: 8,
+  },
+  locationText: {
+    fontSize: 15,
+    color: OnboardingColors.text.secondary,
+    fontWeight: "300",
+    textAlign: "center",
+    fontFamily: "Fraunces",
   },
 });

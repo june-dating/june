@@ -20,6 +20,7 @@ import Animated, {
   withTiming,
 } from "react-native-reanimated";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
+import { OnboardingColors } from "../colors/index";
 import ProgressBar from "../components/ProgressBar";
 
 const { width, height } = Dimensions.get("window");
@@ -76,10 +77,14 @@ export default function NameScreen() {
 
   return (
     <View style={styles.container}>
-      <StatusBar barStyle="light-content" />
+      <StatusBar barStyle={OnboardingColors.statusBar} />
 
       <LinearGradient
-        colors={["#3d1a5a", "#5a2a7a", "#8a4bb8"]}
+        colors={[
+          OnboardingColors.gradient.primary,
+          OnboardingColors.gradient.secondary,
+          OnboardingColors.gradient.tertiary,
+        ]}
         style={styles.gradient}
         start={{ x: 1, y: 1.3 }}
         end={{ x: 0, y: 0 }}
@@ -99,9 +104,7 @@ export default function NameScreen() {
             <Animated.View style={[styles.header, animatedTitleStyle]}>
               <Text style={styles.title}>What's your name?</Text>
               <Animated.View style={animatedSubtitleStyle}>
-                <Text style={styles.subtitle}>
-                  We'll use this to personalize your experience
-                </Text>
+                <Text style={styles.subtitle}>Let's start with the basics</Text>
               </Animated.View>
             </Animated.View>
 
@@ -113,13 +116,17 @@ export default function NameScreen() {
                   value={name}
                   onChangeText={handleNameChange}
                   placeholder="Enter your full name"
-                  placeholderTextColor="rgba(255, 255, 255, 0.6)"
+                  placeholderTextColor={OnboardingColors.text.tertiary}
                   autoFocus
                   autoCapitalize="words"
                   autoCorrect={false}
                 />
                 <Animated.View style={[styles.checkIcon, animatedCheckStyle]}>
-                  <Ionicons name="checkmark-circle" size={24} color="#FFF" />
+                  <Ionicons
+                    name="checkmark-circle"
+                    size={24}
+                    color={OnboardingColors.icon.checkmark}
+                  />
                 </Animated.View>
               </View>
             </Animated.View>
@@ -138,8 +145,8 @@ export default function NameScreen() {
                   <LinearGradient
                     colors={
                       isValid
-                        ? ["#FFF", "#F0F0F0"]
-                        : ["rgba(255,255,255,0.3)", "rgba(255,255,255,0.2)"]
+                        ? OnboardingColors.background.buttonEnabled
+                        : OnboardingColors.background.buttonDisabled
                     }
                     style={styles.buttonGradient}
                   >
@@ -154,7 +161,11 @@ export default function NameScreen() {
                     <Ionicons
                       name="arrow-forward"
                       size={20}
-                      color={isValid ? "#8a4bb8" : "rgba(255,255,255,0.5)"}
+                      color={
+                        isValid
+                          ? OnboardingColors.icon.button
+                          : OnboardingColors.icon.buttonDisabled
+                      }
                     />
                   </LinearGradient>
                 </TouchableOpacity>
@@ -191,18 +202,20 @@ const styles = StyleSheet.create({
   },
   title: {
     fontSize: 36,
-    fontWeight: "800",
-    color: "#FFF",
+    color: OnboardingColors.text.primary,
     marginBottom: 12,
     textAlign: "left",
     lineHeight: 44,
+    fontFamily: "Fraunces",
+    fontWeight: "600",
   },
   subtitle: {
-    fontSize: 16,
-    color: "rgba(255, 255, 255, 0.8)",
+    fontSize: 18,
+    color: OnboardingColors.text.secondary,
     textAlign: "left",
     lineHeight: 24,
     maxWidth: "85%",
+    fontFamily: "Fraunces",
   },
   inputContainer: {
     flex: 1,
@@ -211,27 +224,29 @@ const styles = StyleSheet.create({
     minHeight: 120,
   },
   inputWrapper: {
-    backgroundColor: "rgba(255, 255, 255, 0.15)",
+    backgroundColor: OnboardingColors.background.input,
     borderRadius: 20,
     borderWidth: 2,
-    borderColor: "rgba(255, 255, 255, 0.2)",
+    borderColor: OnboardingColors.border.input,
     flexDirection: "row",
     alignItems: "center",
     paddingHorizontal: 24,
     paddingVertical: 20,
     minHeight: 60,
-    shadowColor: "#8a4bb8",
-    shadowOffset: { width: 0, height: 8 },
-    shadowOpacity: 0.3,
-    shadowRadius: 16,
-    elevation: 8,
+    shadowColor: OnboardingColors.shadow.primary,
+    shadowOffset: OnboardingColors.shadow.offset,
+    shadowOpacity: OnboardingColors.shadow.opacity.light,
+    shadowRadius: OnboardingColors.shadow.radius.medium,
+    elevation: OnboardingColors.shadow.elevation.light,
     maxWidth: "90%",
   },
   input: {
     flex: 1,
     fontSize: 18,
-    color: "#FFF",
-    fontWeight: "600",
+    color: OnboardingColors.text.primary,
+    fontWeight: "300",
+    fontFamily: "Fraunces",
+    letterSpacing: 0.5,
   },
   checkIcon: {
     marginLeft: 12,
@@ -242,18 +257,17 @@ const styles = StyleSheet.create({
     marginBottom: 40,
   },
   buttonWrapper: {
-    shadowColor: "#8a4bb8",
-    shadowOffset: { width: 0, height: 8 },
-    shadowOpacity: 0.4,
-    // shadowRadius: 16,
-    elevation: 12,
+    shadowColor: OnboardingColors.shadow.primary,
+    shadowOffset: OnboardingColors.shadow.offset,
+    shadowOpacity: OnboardingColors.shadow.opacity.medium,
+    elevation: OnboardingColors.shadow.elevation.medium,
   },
   button: {
     borderRadius: 20,
     overflow: "hidden",
   },
   buttonDisabled: {
-    opacity: 0.6,
+    opacity: OnboardingColors.opacity.buttonDisabled,
   },
   buttonGradient: {
     flexDirection: "row",
@@ -265,10 +279,11 @@ const styles = StyleSheet.create({
   buttonText: {
     fontSize: 18,
     fontWeight: "700",
-    color: "#8a4bb8",
+    color: OnboardingColors.text.button,
     marginRight: 8,
+    fontFamily: "Fraunces",
   },
   buttonTextDisabled: {
-    color: "rgba(255, 255, 255, 0.5)",
+    color: OnboardingColors.text.buttonDisabled,
   },
 });
