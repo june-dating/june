@@ -1,37 +1,24 @@
-import { Ionicons } from "@expo/vector-icons";
-import { Tabs } from "expo-router";
+import SimpleTabNavigator from "../components/SimpleTabNavigator";
+import DateScreen from "./date";
+import ProfileScreen from "./profile-screen";
 
 export default function TabsLayout() {
-  return (
-    <Tabs
-      screenOptions={({ route }) => ({
-        headerShown: false,
-        tabBarShowLabel: true,
-        tabBarIcon: ({ color, size, focused }) => {
-          if (route.name === "profile-screen") {
-            return (
-              <Ionicons
-                name={focused ? "person" : "person-outline"}
-                size={size}
-                color={color}
-              />
-            );
-          }
-          if (route.name === "date") {
-            return (
-              <Ionicons
-                name={focused ? "calendar" : "calendar-outline"}
-                size={size}
-                color={color}
-              />
-            );
-          }
-          return null;
-        },
-      })}
-    >
-      <Tabs.Screen name="profile-screen" options={{ title: "Profile" }} />
-      <Tabs.Screen name="date" options={{ title: "Date" }} />
-    </Tabs>
-  );
+  const tabs = [
+    {
+      name: "profile-screen",
+      title: "Profile",
+      icon: "person-outline" as const,
+      iconFocused: "person" as const,
+      component: ProfileScreen,
+    },
+    {
+      name: "date",
+      title: "Date",
+      icon: "calendar-outline" as const,
+      iconFocused: "calendar" as const,
+      component: DateScreen,
+    },
+  ];
+
+  return <SimpleTabNavigator tabs={tabs} initialTab="profile-screen" />;
 }

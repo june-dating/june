@@ -259,7 +259,7 @@ const styles = StyleSheet.create({
   speakButtonText: {
     color: OnboardingColors.text.button,
     fontSize: 16,
-    fontWeight: "600",
+    fontWeight: "500",
     marginLeft: 10,
     fontFamily: "Fraunces",
   },
@@ -282,7 +282,7 @@ const styles = StyleSheet.create({
     fontSize: 18,
     color: OnboardingColors.text.primary,
     fontFamily: "Fraunces",
-    fontWeight: "700",
-    letterSpacing: 0.5,
+    fontWeight: "400",
+    letterSpacing: 0.7,
   },
 });

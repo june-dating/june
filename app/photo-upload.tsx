@@ -5,7 +5,7 @@ import { useFonts } from "expo-font";
 import * as ImagePicker from "expo-image-picker";
 import { LinearGradient } from "expo-linear-gradient";
 import { router } from "expo-router";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import {
   Alert,
   Dimensions,
@@ -17,15 +17,6 @@ import {
   TouchableOpacity,
   View,
 } from "react-native";
-import Animated, {
-  Easing,
-  interpolate,
-  useAnimatedStyle,
-  useSharedValue,
-  withRepeat,
-  withSequence,
-  withTiming,
-} from "react-native-reanimated";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { OnboardingColors } from "./colors";
 
@@ -48,7 +39,8 @@ function PhotoCarousel({
   onRemovePhoto: (id: string) => void;
 }) {
   // Responsive sizing based on screen height
-  const carouselHeight = Math.min(AVAILABLE_HEIGHT * 0.32, 170); // 32% of available height, max 170px
+  // Increase carousel height and item size
+  const carouselHeight = Math.min(AVAILABLE_HEIGHT * 0.4, 220); // 40% of available height, max 220px
   const itemWidth = carouselHeight - 8; // Square photos with minimal padding
   const itemSpacing = 14;
   const [currentIndex, setCurrentIndex] = useState(0);
@@ -169,79 +161,24 @@ function SelectPhotosButton({
   onPress: () => void;
   isComplete: boolean;
 }) {
-  const scale = useSharedValue(1);
-  const shimmer = useSharedValue(0);
-
-  useEffect(() => {
-    if (isComplete) {
-      shimmer.value = withRepeat(
-        withTiming(1, { duration: 2000, easing: Easing.linear }),
-        -1,
-        false
-      );
-    }
-  }, [isComplete]);
-
-  const animatedStyle = useAnimatedStyle(() => ({
-    transform: [{ scale: scale.value }],
-  }));
-
-  const shimmerStyle = useAnimatedStyle(() => ({
-    opacity: interpolate(shimmer.value, [0, 0.5, 1], [0, 1, 0]),
-    transform: [
-      { translateX: interpolate(shimmer.value, [0, 1], [-width, width]) },
-    ],
-  }));
-
-  const handlePress = () => {
-    scale.value = withSequence(
-      withTiming(0.95, { duration: 100 }),
-      withTiming(1, { duration: 100 })
-    );
-    onPress();
-  };
-
   return (
-    <Animated.View style={[styles.selectButtonContainer, animatedStyle]}>
+    <View style={styles.selectButtonContainer}>
       <TouchableOpacity
         style={styles.selectButton}
-        onPress={handlePress}
-        activeOpacity={0.8}
+        onPress={onPress}
+        activeOpacity={0.92}
       >
-        <LinearGradient
-          colors={[
-            OnboardingColors.background.input,
-            OnboardingColors.background.input,
-          ]}
-          style={styles.selectButtonGradient}
-          start={{ x: 0, y: 0 }}
-          end={{ x: 1, y: 1 }}
-        >
+        <View style={styles.selectButtonGradient}>
           <Ionicons
-            name="images"
-            size={24}
+            name="add"
+            size={20}
             color={OnboardingColors.icon.button}
-            style={{ marginRight: 8 }}
+            style={{ marginRight: 10 }}
           />
-          <Text style={styles.selectButtonText}>Select Photos</Text>
-
-          {isComplete && (
-            <Animated.View style={[styles.shimmerOverlay, shimmerStyle]}>
-              <LinearGradient
-                colors={[
-                  "transparent",
-                  "rgba(255, 255, 255, 0.4)",
-                  "transparent",
-                ]}
-                style={styles.shimmerGradient}
-                start={{ x: 0, y: 0 }}
-                end={{ x: 1, y: 0 }}
-              />
-            </Animated.View>
-          )}
-        </LinearGradient>
+          <Text style={styles.selectButtonText}>Add Photos</Text>
+        </View>
       </TouchableOpacity>
-    </Animated.View>
+    </View>
   );
 }
 
@@ -252,102 +189,41 @@ function CompletionButton({
   isComplete: boolean;
   onPress: () => void;
 }) {
-  const shimmer = useSharedValue(0);
-  const scale = useSharedValue(1);
-
-  useEffect(() => {
-    if (isComplete) {
-      shimmer.value = withRepeat(
-        withTiming(1, { duration: 2000, easing: Easing.linear }),
-        -1,
-        false
-      );
-      scale.value = withSequence(
-        withTiming(1.02, { duration: 200 }),
-        withTiming(1, { duration: 200 })
-      );
-    } else {
-      shimmer.value = 0;
-      scale.value = 1;
-    }
-  }, [isComplete]);
-
-  const animatedButtonStyle = useAnimatedStyle(() => ({
-    transform: [{ scale: scale.value }],
-  }));
-
-  const shimmerStyle = useAnimatedStyle(() => ({
-    opacity: interpolate(shimmer.value, [0, 0.5, 1], [0, 1, 0]),
-    transform: [
-      { translateX: interpolate(shimmer.value, [0, 1], [-width, width]) },
-    ],
-  }));
-
   return (
-    <Animated.View
-      style={[styles.completionButtonContainer, animatedButtonStyle]}
-    >
+    <View style={styles.completionButtonContainer}>
       <TouchableOpacity
         style={[
-          styles.completionButton,
+          styles.doneButtonPhotoUpload,
           !isComplete && styles.completionButtonDisabled,
         ]}
         onPress={onPress}
         disabled={!isComplete}
         activeOpacity={0.8}
       >
-        <LinearGradient
-          colors={
-            isComplete
-              ? OnboardingColors.background.buttonEnabled
-              : [
-                  OnboardingColors.background.input,
-                  OnboardingColors.background.input,
-                ]
-          }
-          style={styles.completionButtonGradient}
-          start={{ x: 0, y: 0 }}
-          end={{ x: 1, y: 1 }}
+        <Text
+          style={[
+            styles.doneButtonTextPhotoUpload,
+            !isComplete && styles.completionButtonTextDisabled,
+          ]}
         >
-          <Ionicons
-            name="checkmark"
-            size={22}
-            color={
-              isComplete
-                ? OnboardingColors.text.button
-                : OnboardingColors.text.buttonDisabled
-            }
-            style={{ marginRight: 8 }}
-          />
-          <Text
-            style={[
-              styles.completionButtonText,
-              !isComplete && styles.completionButtonTextDisabled,
-            ]}
-          >
-            Complete Profile
-          </Text>
-
-          {isComplete && (
-            <Animated.View style={[styles.shimmerOverlay, shimmerStyle]}>
-              <LinearGradient
-                colors={[
-                  "transparent",
-                  "rgba(255, 255, 255, 0.3)",
-                  "transparent",
-                ]}
-                style={styles.shimmerGradient}
-                start={{ x: 0, y: 0 }}
-                end={{ x: 1, y: 0 }}
-              />
-            </Animated.View>
-          )}
-        </LinearGradient>
+          Next
+        </Text>
+        <Ionicons
+          name="arrow-forward"
+          size={22}
+          color={
+            isComplete
+              ? OnboardingColors.icon.button
+              : OnboardingColors.icon.buttonDisabled
+          }
+          style={{ marginLeft: 8 }}
+        />
       </TouchableOpacity>
-    </Animated.View>
+    </View>
   );
 }
 
+// F-pattern: Title and subtitle top left, then photo grid, then add button, then complete button bottom right
 export default function PhotoUploadScreen() {
   const insets = useSafeAreaInsets();
   const [photos, setPhotos] = useState<PhotoItem[]>([]);
@@ -362,10 +238,8 @@ export default function PhotoUploadScreen() {
   const pickMultipleImages = async () => {
     try {
       setIsLoading(true);
-
       const { status } =
         await ImagePicker.requestMediaLibraryPermissionsAsync();
-
       if (status !== "granted") {
         Alert.alert(
           "Permission needed",
@@ -373,7 +247,6 @@ export default function PhotoUploadScreen() {
         );
         return;
       }
-
       const result = await ImagePicker.launchImageLibraryAsync({
         mediaTypes: ["images"],
         allowsMultipleSelection: true,
@@ -381,13 +254,11 @@ export default function PhotoUploadScreen() {
         quality: 0.8,
         allowsEditing: false,
       });
-
       if (!result.canceled && result.assets) {
         const newPhotos: PhotoItem[] = result.assets.map((asset, index) => ({
           id: `photo_${Date.now()}_${index}`,
           uri: asset.uri,
         }));
-
         setPhotos((prev) => [...prev, ...newPhotos].slice(0, 10));
       }
     } catch (error) {
@@ -397,25 +268,18 @@ export default function PhotoUploadScreen() {
       setIsLoading(false);
     }
   };
-
   const removePhoto = (photoId: string) => {
     setPhotos((prev) => prev.filter((photo) => photo.id !== photoId));
   };
-
   const handleComplete = () => {
     if (isComplete) {
       console.log(`${photos.length} photos uploaded, proceeding to next step`);
-      // Navigate to profile screen
       router.push("/gpt");
     }
   };
-
-  const progressPercentage = (photos.length / 10) * 100;
-
   return (
     <View style={styles.container}>
       <StatusBar barStyle={OnboardingColors.statusBar} />
-
       <LinearGradient
         colors={[
           OnboardingColors.gradient.primary,
@@ -426,82 +290,41 @@ export default function PhotoUploadScreen() {
         start={{ x: 1, y: 1.3 }}
         end={{ x: 0, y: 0 }}
       >
-        {/* Title - aligned with back button */}
-        <View style={[styles.titleContainer, { top: insets.top + 20 }]}>
-          <Text style={styles.title}>Show your world</Text>
-        </View>
-
-        <View style={[styles.mainContainer, { paddingTop: insets.top + 80 }]}>
-          <View style={styles.content}>
-            {/* Header */}
-            <View style={styles.headerContainer}>
-              <Text style={styles.subtitle}>
-                Add atleast 5 pictures (optional)
-              </Text>
-            </View>
-
-            {/* Photo Grid */}
-            <View style={styles.photoSection}>
-              <PhotoCarousel photos={photos} onRemovePhoto={removePhoto} />
-            </View>
-
-            {/* Select Photos Button */}
-            {photos.length < 10 && (
+        <View style={[styles.content, { paddingTop: insets.top + 20 }]}>
+          {/* F-pattern main content */}
+          {/* Title and subtitle - top left */}
+          <View style={styles.headerFPattern}>
+            <Text style={styles.titleFPattern}>Show your world</Text>
+            <Text style={styles.subtitleFPattern}>
+              Add at least 5 pictures (optional)
+            </Text>
+          </View>
+          {/* Photo Grid - left aligned, more vertical space */}
+          <View style={styles.photoSectionFPattern}>
+            <PhotoCarousel photos={photos} onRemovePhoto={removePhoto} />
+          </View>
+          {/* Add Photos Button - left aligned */}
+          {photos.length < 10 && (
+            <View style={styles.addButtonFPattern}>
               <SelectPhotosButton
                 onPress={pickMultipleImages}
                 isComplete={isComplete}
               />
-            )}
-
-            {/* Tips Section */}
-            <View style={styles.tipsSection}>
-              <Text style={styles.tipsTitle}>Photo Tips</Text>
-              <View style={styles.tipsList}>
-                <View style={styles.tipItem}>
-                  <Ionicons
-                    name="camera"
-                    size={16}
-                    color={OnboardingColors.icon.button}
-                  />
-                  <Text style={styles.tipText}>Include clear face photos</Text>
-                </View>
-                <View style={styles.tipItem}>
-                  <Ionicons
-                    name="sunny"
-                    size={16}
-                    color={OnboardingColors.icon.button}
-                  />
-                  <Text style={styles.tipText}>
-                    Show your hobbies and interests
-                  </Text>
-                </View>
-                <View style={styles.tipItem}>
-                  <Ionicons
-                    name="heart"
-                    size={16}
-                    color={OnboardingColors.icon.button}
-                  />
-                  <Text style={styles.tipText}>Be authentic and genuine</Text>
-                </View>
-                <View style={styles.tipItem}>
-                  <Ionicons
-                    name="star"
-                    size={16}
-                    color={OnboardingColors.icon.button}
-                  />
-                  <Text style={styles.tipText}>
-                    Photos are optional but recommended
-                  </Text>
-                </View>
-              </View>
             </View>
-          </View>
+          )}
         </View>
-
-        {/* Completion Button - positioned at bottom */}
+        {/* Completion Button - bottom right */}
         <View
-          style={[styles.bottomButtonContainer, { bottom: insets.bottom + 20 }]}
+          style={[
+            styles.bottomButtonContainer,
+            {
+              bottom: insets.bottom + 10,
+              alignItems: "flex-end",
+              paddingRight: 24,
+            },
+          ]}
         >
+          {/* F-pattern end */}
           <CompletionButton isComplete={isComplete} onPress={handleComplete} />
         </View>
       </LinearGradient>
@@ -515,6 +338,7 @@ const styles = StyleSheet.create({
   },
   gradient: {
     flex: 1,
+    paddingTop: 20,
   },
   mainContainer: {
     flex: 1,
@@ -543,32 +367,32 @@ const styles = StyleSheet.create({
     zIndex: 10,
     alignItems: "center",
     justifyContent: "center",
-    height: 64,
-    marginTop: 16,
+    height: 48, // reduced from 64
+    marginTop: 8, // reduced from 16
   },
   content: {
-    paddingHorizontal: 24,
+    paddingHorizontal: 16, // reduced from 24
     flex: 1,
   },
   headerContainer: {
     alignItems: "center",
-    marginBottom: Math.max(AVAILABLE_HEIGHT * 0.015, 8),
+    marginBottom: 8, // fixed, less whitespace
   },
   title: {
-    fontSize: 36,
+    fontSize: 32, // reduced from 36
     fontWeight: "600",
     color: OnboardingColors.text.primary,
     textAlign: "center",
-    marginBottom: 18,
+    marginBottom: 10, // reduced from 18
     fontFamily: "Fraunces",
   },
   subtitle: {
-    fontSize: 16,
+    fontSize: 15, // slightly smaller
     color: OnboardingColors.text.secondary,
     textAlign: "center",
     fontFamily: "Fraunces",
     fontWeight: "300",
-    lineHeight: 22,
+    lineHeight: 20, // slightly smaller
   },
   progressSection: {
     marginBottom: Math.max(AVAILABLE_HEIGHT * 0.025, 16),
@@ -620,20 +444,20 @@ const styles = StyleSheet.create({
     textAlign: "center",
   },
   photoSection: {
-    marginTop: 32,
-    marginBottom: Math.max(AVAILABLE_HEIGHT * 0.025, 16),
+    marginTop: 16, // reduced from 32
+    marginBottom: 10, // reduced
   },
   carouselContainer: {
-    height: Math.min(AVAILABLE_HEIGHT * 0.32, 170) + 25,
-    marginBottom: 15,
+    height: Math.min(AVAILABLE_HEIGHT * 0.5, 320) + 20, // much taller
+    marginBottom: 0, // reduced to minimize gap with dots
   },
   carouselContent: {
-    paddingHorizontal: 20,
+    paddingHorizontal: 10, // reduced
   },
   carouselItem: {
-    borderRadius: 20,
+    borderRadius: 24,
     overflow: "hidden",
-    marginRight: 14,
+    marginRight: 18,
     backgroundColor: OnboardingColors.background.input,
     borderWidth: 2,
     borderColor: OnboardingColors.border.input,
@@ -654,12 +478,12 @@ const styles = StyleSheet.create({
     bottom: 0,
     justifyContent: "flex-end",
     alignItems: "flex-end",
-    padding: 10,
+    padding: 24, // much larger overlay padding
   },
   removeButton: {
-    width: 32,
-    height: 32,
-    borderRadius: 16,
+    width: 40,
+    height: 40,
+    borderRadius: 20,
     backgroundColor: "rgba(0, 0, 0, 0.7)",
     justifyContent: "center",
     alignItems: "center",
@@ -685,12 +509,12 @@ const styles = StyleSheet.create({
   },
   selectButtonContainer: {
     alignItems: "center",
-    marginBottom: Math.max(AVAILABLE_HEIGHT * 0.025, 16),
+    marginBottom: 10, // reduced
   },
   selectButton: {
-    width: width - 48,
-    height: Math.max(AVAILABLE_HEIGHT * 0.065, 48),
-    borderRadius: 20,
+    width: width - 64, // slightly narrower
+    height: Math.max(AVAILABLE_HEIGHT * 0.055, 40), // reduced
+    borderRadius: 16, // reduced
     shadowColor: OnboardingColors.shadow.primary,
     shadowOffset: OnboardingColors.shadow.offset,
     shadowOpacity: OnboardingColors.shadow.opacity.light,
@@ -702,14 +526,14 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "center",
-    borderRadius: 20,
+    borderRadius: 16,
     borderWidth: 1,
     borderColor: OnboardingColors.border.input,
     position: "relative",
     overflow: "hidden",
   },
   selectButtonText: {
-    fontSize: 16,
+    fontSize: 15, // slightly smaller
     fontWeight: "700",
     color: OnboardingColors.text.tertiary,
     fontFamily: "Fraunces",
@@ -760,12 +584,12 @@ const styles = StyleSheet.create({
   },
   completionButtonContainer: {
     alignItems: "center",
-    marginBottom: Math.max(AVAILABLE_HEIGHT * 0.02, 10),
+    marginBottom: 6, // reduced
   },
   completionButton: {
-    width: width - 48,
-    height: Math.max(AVAILABLE_HEIGHT * 0.065, 48),
-    borderRadius: 20,
+    width: width - 64,
+    height: Math.max(AVAILABLE_HEIGHT * 0.055, 40),
+    borderRadius: 16,
     overflow: "hidden",
     shadowColor: OnboardingColors.shadow.primary,
     shadowOffset: OnboardingColors.shadow.offset,
@@ -785,7 +609,7 @@ const styles = StyleSheet.create({
     overflow: "hidden",
   },
   completionButtonText: {
-    fontSize: 16,
+    fontSize: 15,
     fontWeight: "700",
     color: OnboardingColors.text.button,
     fontFamily: "Fraunces",
@@ -809,7 +633,7 @@ const styles = StyleSheet.create({
   paginationContainer: {
     flexDirection: "row",
     justifyContent: "center",
-    marginTop: 10,
+    marginTop: 0, // minimal gap
   },
   paginationDot: {
     width: 8,
@@ -817,5 +641,135 @@ const styles = StyleSheet.create({
     borderRadius: 4,
     marginHorizontal: 4,
     backgroundColor: OnboardingColors.background.input,
+  },
+  // Enhanced Select Photos button
+  selectButtonContainerEnhanced: {
+    alignItems: "center",
+    marginBottom: 10,
+    marginTop: 18,
+  },
+  selectButtonEnhanced: {
+    width: width - 64,
+    height: 52,
+    borderRadius: 28,
+    shadowColor: "#6D5FFD",
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.18,
+    shadowRadius: 12,
+    elevation: 6,
+  },
+  selectButtonGradientEnhanced: {
+    flex: 1,
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    borderRadius: 28,
+    borderWidth: 0,
+    overflow: "hidden",
+  },
+  plusIconCircle: {
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    backgroundColor: "rgba(255,255,255,0.18)",
+    alignItems: "center",
+    justifyContent: "center",
+    marginRight: 14,
+  },
+  selectButtonTextEnhanced: {
+    fontSize: 18,
+    fontWeight: "700",
+    color: "#fff",
+    fontFamily: "Fraunces",
+    letterSpacing: 0.5,
+  },
+  // Move photo grid lower
+  photoSectionMoved: {
+    marginTop: 80, // increased from 40
+    marginBottom: 0,
+  },
+  // Move subtitle below photo grid
+  headerContainerMoved: {
+    alignItems: "center",
+    marginBottom: 12,
+    marginTop: 8,
+  },
+  subtitleMoved: {
+    fontSize: 15,
+    color: OnboardingColors.text.secondary,
+    textAlign: "center",
+    fontFamily: "Fraunces",
+    fontWeight: "300",
+    lineHeight: 20,
+  },
+  // Add new styles for onboarding-style completion button
+  completionButtonGradientOnboarding: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    paddingVertical: 10,
+    paddingHorizontal: 22,
+    borderRadius: 20,
+  },
+  completionButtonTextOnboarding: {
+    fontSize: 18,
+    fontWeight: "400",
+    color: OnboardingColors.text.button,
+    marginRight: 8,
+    fontFamily: "Fraunces",
+    letterSpacing: 0.7,
+  },
+  // F-pattern styles
+  headerFPattern: {
+    marginBottom: 32,
+    alignItems: "flex-start",
+  },
+  titleFPattern: {
+    fontSize: 36,
+    fontWeight: "600",
+    color: OnboardingColors.text.primary,
+    marginBottom: 12,
+    textAlign: "left",
+    lineHeight: 44,
+    fontFamily: "Fraunces",
+  },
+  subtitleFPattern: {
+    fontSize: 16,
+    color: OnboardingColors.text.secondary,
+    textAlign: "left",
+    lineHeight: 24,
+    maxWidth: "85%",
+    fontFamily: "Fraunces",
+    fontWeight: "300",
+  },
+  photoSectionFPattern: {
+    marginTop: 40, // moved down by 40px
+  },
+  addButtonFPattern: {
+    alignItems: "flex-start",
+    marginTop: 10,
+  },
+  doneButtonPhotoUpload: {
+    flexDirection: "row",
+    backgroundColor: OnboardingColors.background.input,
+    borderRadius: 16, // match completionButton
+    height: Math.max(AVAILABLE_HEIGHT * 0.09, 60), // increased height
+    width: width - 64, // keep current width
+    alignItems: "center",
+    justifyContent: "center",
+    shadowColor: OnboardingColors.shadow.primary,
+    shadowOffset: OnboardingColors.shadow.offset,
+    shadowOpacity: OnboardingColors.shadow.opacity.medium,
+    shadowRadius: OnboardingColors.shadow.radius.medium,
+    elevation: OnboardingColors.shadow.elevation.medium,
+    paddingHorizontal: 32, // match doneButton
+    marginTop: 0, // no extra margin
+  },
+  doneButtonTextPhotoUpload: {
+    fontSize: 20,
+    color: OnboardingColors.text.primary,
+    fontFamily: "Fraunces",
+    fontWeight: "400",
+    letterSpacing: 0.7,
   },
 });

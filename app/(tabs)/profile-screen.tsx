@@ -1,10 +1,10 @@
 "use client";
 
-import { Ionicons } from "@expo/vector-icons";
+import { Ionicons, MaterialCommunityIcons } from "@expo/vector-icons";
 import { useFonts } from "expo-font";
 import { LinearGradient } from "expo-linear-gradient";
 import { router } from "expo-router";
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import {
   Dimensions,
   FlatList,
@@ -23,10 +23,12 @@ import Animated, {
   useAnimatedStyle,
   useSharedValue,
   withRepeat,
+  withSpring,
   withTiming,
 } from "react-native-reanimated";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { OnboardingColors } from "../colors";
+import InsightModal from "../components/InsightModal";
 
 const { width, height } = Dimensions.get("window");
 
@@ -36,21 +38,22 @@ const profileData = {
   age: 23,
   location: "New York, USA", // Added location
   personality: "INFJ | Author | Weekend poet",
-  juneInsight: [
-    "Deep listener.",
-    "Ambivert.",
-    "Believes in real talk and long walks.",
-    "Might write you a poem when you're not looking.",
-  ], // Now an array for bullet points
-  improvement: [
-    "Be more spontaneous.",
-    "Open up sooner in conversations.",
-    "Try new activities outside your comfort zone.",
+  juneThinks: [
+    "Deep listener",
+    "Thoughtful ambivert",
+    "Believer in real talk over small talk",
+    "Poet at heart",
   ],
-  whyDate: [
-    "Genuine and caring nature.",
-    "Great at deep conversations.",
-    "Will surprise you with poetry.",
+  juneTips: [
+    "Be more spontaneous",
+    "Open up sooner - people want to see the real you",
+    "Try new activities outside your comfort zone",
+  ],
+  juneSays: [
+    "Genuine and patient",
+    "Great at meaningful conversations",
+    "Creative and expressive",
+    "Emotionally intelligent",
   ],
   facePhotos: [
     {
@@ -64,36 +67,6 @@ const profileData = {
     {
       id: "3",
       uri: require("../../assets/images/img1.jpg"),
-    },
-    {
-      id: "4",
-      uri: "https://images.unsplash.com/photo-1524504388940-b1c1722653e1?w=400&h=400&fit=crop&crop=face",
-    },
-    {
-      id: "5",
-      uri: "https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=400&h=400&fit=crop&crop=face",
-    },
-  ],
-  lifePhotos: [
-    {
-      id: "6",
-      uri: "https://images.unsplash.com/photo-1513475382585-d06e58bcb0e0?w=400&h=500&fit=crop",
-    },
-    {
-      id: "7",
-      uri: "https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=400&h=300&fit=crop",
-    },
-    {
-      id: "8",
-      uri: "https://images.unsplash.com/photo-1485579149621-3123dd979885?w=400&h=600&fit=crop",
-    },
-    {
-      id: "9",
-      uri: "https://images.unsplash.com/photo-1501594907352-04cda38ebc29?w=400&h=400&fit=crop",
-    },
-    {
-      id: "10",
-      uri: "https://images.unsplash.com/photo-1511593358241-7eea1f3c84e5?w=400&h=500&fit=crop",
     },
   ],
 };
@@ -191,97 +164,6 @@ function ProfileHeader() {
   );
 }
 
-function PersonalitySummary() {
-  return (
-    <Animated.View
-      style={styles.summaryContainer}
-      entering={FadeInUp.delay(400).duration(800)}
-    >
-      <LinearGradient
-        colors={["rgba(255, 255, 255, 0.15)", "rgba(255, 255, 255, 0.08)"]}
-        style={styles.summaryCard}
-      >
-        <View style={styles.summaryHeader}>
-          <Ionicons name="sparkles" size={20} color="#C6B2FF" />
-          <Text style={styles.summaryTitle}>June says:</Text>
-        </View>
-        <View style={{ marginTop: 4 }}>
-          {profileData.juneInsight.map((point, idx) => (
-            <View
-              key={idx}
-              style={{
-                flexDirection: "row",
-                alignItems: "flex-start",
-                marginBottom: 4,
-              }}
-            >
-              <Text
-                style={{
-                  color: "#C6B2FF",
-                  fontSize: 18,
-                  marginRight: 8,
-                  lineHeight: 22,
-                }}
-              >
-                •
-              </Text>
-              <Text style={styles.summaryText}>{point}</Text>
-            </View>
-          ))}
-        </View>
-      </LinearGradient>
-    </Animated.View>
-  );
-}
-
-function InfoBox({
-  title,
-  icon,
-  points,
-  color = "#C6B2FF",
-}: {
-  title: string;
-  icon: any;
-  points: string[];
-  color?: string;
-}) {
-  return (
-    <Animated.View
-      style={styles.summaryContainer}
-      entering={FadeInUp.delay(500).duration(800)}
-    >
-      <LinearGradient
-        colors={["rgba(255, 255, 255, 0.12)", "rgba(255, 255, 255, 0.06)"]}
-        style={styles.summaryCard}
-      >
-        <View style={styles.summaryHeader}>
-          <Ionicons name={icon} size={20} color={color} />
-          <Text style={[styles.summaryTitle, { color }]}>{title}</Text>
-        </View>
-        <View style={{ marginTop: 4 }}>
-          {points.map((point: string, idx: number) => (
-            <View
-              key={idx}
-              style={{
-                flexDirection: "row",
-                alignItems: "flex-start",
-                marginBottom: 4,
-              }}
-            >
-              <Text
-                style={{ color, fontSize: 18, marginRight: 8, lineHeight: 22 }}
-              >
-                •
-              </Text>
-              <Text style={styles.summaryText}>{point}</Text>
-            </View>
-          ))}
-        </View>
-      </LinearGradient>
-    </Animated.View>
-  );
-}
-
 function FacePhotosCarousel() {
   const renderFacePhoto = ({ item }: { item: any }) => (
     <View style={styles.facePhotoContainer}>
@@ -315,29 +197,211 @@ function FacePhotosCarousel() {
   );
 }
 
-function LifePhotosCarousel() {
+function InsightCard({
+  title,
+  icon,
+  color = "#C6B2FF",
+  onPress,
+  isFullWidth = false,
+  iconLibrary = "Ionicons",
+}: {
+  title: string;
+  icon: any;
+  color?: string;
+  onPress: () => void;
+  isFullWidth?: boolean;
+  iconLibrary?: string;
+}) {
+  const scale = useSharedValue(1);
+
+  const handlePressIn = () => {
+    scale.value = withSpring(0.95, {
+      damping: 15,
+      stiffness: 300,
+    });
+  };
+
+  const handlePressOut = () => {
+    scale.value = withSpring(1, {
+      damping: 15,
+      stiffness: 300,
+    });
+  };
+
+  const animatedStyle = useAnimatedStyle(() => ({
+    transform: [{ scale: scale.value }],
+  }));
+
+  const IconComponent =
+    iconLibrary === "MaterialCommunityIcons"
+      ? MaterialCommunityIcons
+      : Ionicons;
+
   return (
     <Animated.View
-      style={styles.photosSection}
-      entering={FadeInUp.delay(800).duration(800)}
+      style={[
+        animatedStyle,
+        isFullWidth ? styles.fullWidthCardContainer : styles.cardContainer,
+      ]}
     >
-      <Text style={styles.sectionTitle}>Your World</Text>
-      <FlatList
-        data={profileData.lifePhotos}
-        renderItem={({ item }) => (
-          <View style={styles.lifePhotoCarouselItem}>
-            <Image
-              source={{ uri: item.uri }}
-              style={styles.lifePhotoCarouselImage}
-            />
+      <TouchableOpacity
+        onPress={onPress}
+        onPressIn={handlePressIn}
+        onPressOut={handlePressOut}
+        activeOpacity={0.9}
+        style={styles.cardTouchable}
+      >
+        <LinearGradient
+          colors={[color + "25", color + "15", color + "10"]}
+          style={styles.card}
+          start={{ x: 0, y: 0 }}
+          end={{ x: 1, y: 1 }}
+        >
+          <View style={styles.cardContent}>
+            <View
+              style={[
+                styles.cardIconContainer,
+                { backgroundColor: color + "30" },
+              ]}
+            >
+              <IconComponent name={icon} size={28} color={color} />
+            </View>
+            <Text
+              style={[styles.cardTitle, { color: "#fff" }]}
+              numberOfLines={2}
+            >
+              {title}
+            </Text>
+            <View style={styles.cardFooter}>
+              <Text style={[styles.cardSubtitle, { color: color }]}>
+                Tap to explore
+              </Text>
+            </View>
           </View>
-        )}
-        horizontal
-        showsHorizontalScrollIndicator={false}
-        contentContainerStyle={styles.lifePhotoCarouselContent}
-        keyExtractor={(item) => item.id}
-      />
+        </LinearGradient>
+      </TouchableOpacity>
     </Animated.View>
+  );
+}
+
+function InsightCardsSection() {
+  const [modalState, setModalState] = useState({
+    visible: false,
+    title: "",
+    icon: "",
+    points: [] as string[],
+    color: "#C6B2FF",
+    iconLibrary: "Ionicons",
+  });
+
+  // Add state to track the current data
+  const [currentData, setCurrentData] = useState({
+    juneThinks: profileData.juneThinks,
+    juneTips: profileData.juneTips,
+    juneSays: profileData.juneSays,
+  });
+
+  const openModal = (
+    title: string,
+    icon: any,
+    points: string[],
+    color: string,
+    iconLibrary: string = "Ionicons"
+  ) => {
+    setModalState({
+      visible: true,
+      title,
+      icon,
+      points,
+      color,
+      iconLibrary,
+    });
+  };
+
+  const closeModal = () => {
+    setModalState((prev) => ({ ...prev, visible: false }));
+  };
+
+  const handleSavePoints = (newPoints: string[]) => {
+    // Update the appropriate data based on modal title
+    if (modalState.title.includes("June thinks")) {
+      setCurrentData((prev) => ({ ...prev, juneThinks: newPoints }));
+    } else if (modalState.title.includes("tips")) {
+      setCurrentData((prev) => ({ ...prev, juneTips: newPoints }));
+    } else if (modalState.title.includes("looking for")) {
+      setCurrentData((prev) => ({ ...prev, juneSays: newPoints }));
+    }
+
+    // In a real app, you'd also send this to your backend here
+    console.log("Saving points:", newPoints);
+  };
+
+  return (
+    <>
+      <Animated.View
+        style={styles.cardsSection}
+        entering={FadeInUp.delay(400).duration(800)}
+      >
+        <View style={styles.cardsRow}>
+          <InsightCard
+            title="June thinks you're a..."
+            icon="brain"
+            color="#C6B2FF"
+            iconLibrary="MaterialCommunityIcons"
+            onPress={() =>
+              openModal(
+                "June thinks you're a...",
+                "brain",
+                currentData.juneThinks,
+                "#C6B2FF",
+                "MaterialCommunityIcons"
+              )
+            }
+          />
+          <InsightCard
+            title="June's tips to be a Better Date"
+            icon="bulb"
+            color="#FFB86C"
+            onPress={() =>
+              openModal(
+                "June's tips to be a Better Date: ",
+                "bulb",
+                currentData.juneTips,
+                "#FFB86C"
+              )
+            }
+          />
+        </View>
+
+        <View style={styles.singleCardRow}>
+          <InsightCard
+            title="June is looking for someone who is..."
+            icon="heart"
+            color="#FF6C8C"
+            onPress={() =>
+              openModal(
+                "June is looking for someone who is...",
+                "heart",
+                currentData.juneSays,
+                "#FF6C8C"
+              )
+            }
+            isFullWidth={true}
+          />
+        </View>
+      </Animated.View>
+
+      <InsightModal
+        visible={modalState.visible}
+        onClose={closeModal}
+        title={modalState.title}
+        icon={modalState.icon}
+        points={modalState.points}
+        color={modalState.color}
+        iconLibrary={modalState.iconLibrary}
+        onSavePoints={handleSavePoints}
+      />
+    </>
   );
 }
 
@@ -347,6 +411,7 @@ export default function ProfileScreen() {
   const [fontsLoaded] = useFonts({
     Fraunces: require("../../assets/fonts/Fraunces-VariableFont_SOFT,WONK,opsz,wght.ttf"),
   });
+
   if (!fontsLoaded) return null;
 
   return (
@@ -377,23 +442,10 @@ export default function ProfileScreen() {
           showsVerticalScrollIndicator={false}
           contentContainerStyle={styles.scrollContent}
         >
-          {/* Removed Back Button */}
           <ProfileHeader />
-          <View style={{ marginTop: 32 }}>
-            <PersonalitySummary />
-            <InfoBox
-              title="What you should improve?"
-              icon="trending-up-outline"
-              points={profileData.improvement}
-              color="#FFB86C"
-            />
-            <InfoBox
-              title="Why would someone date you?"
-              icon="heart-outline"
-              points={profileData.whyDate}
-              color="#FF6C8C"
-            />
-          </View>
+
+          <InsightCardsSection />
+
           <FacePhotosCarousel />
         </ScrollView>
       </LinearGradient>
@@ -421,6 +473,76 @@ const styles = StyleSheet.create({
     backgroundColor: "#C6B2FF",
     borderRadius: 1,
   },
+
+  // Enhanced Card Styles
+  cardsSection: {
+    marginTop: 32,
+    marginBottom: 40,
+  },
+  cardsRow: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    marginBottom: 20,
+  },
+  singleCardRow: {
+    alignItems: "center",
+  },
+  cardContainer: {
+    flex: 0.48,
+    minHeight: 160,
+  },
+  fullWidthCardContainer: {
+    width: "100%",
+    minHeight: 140,
+  },
+  cardTouchable: {
+    flex: 1,
+  },
+  card: {
+    flex: 1,
+    padding: 24,
+    borderRadius: 24,
+    borderWidth: 1,
+    borderColor: "rgba(255, 255, 255, 0.1)",
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 8 },
+    shadowOpacity: 0.3,
+    shadowRadius: 20,
+    elevation: 10,
+  },
+  cardContent: {
+    flex: 1,
+    alignItems: "center",
+    justifyContent: "space-between",
+  },
+  cardIconContainer: {
+    width: 64,
+    height: 64,
+    borderRadius: 32,
+    alignItems: "center",
+    justifyContent: "center",
+    marginBottom: 12,
+  },
+  cardTitle: {
+    fontSize: 15,
+    fontWeight: "400",
+    textAlign: "center",
+    marginBottom: 8,
+    lineHeight: 20,
+    fontFamily: "Fraunces",
+    letterSpacing: 0.6,
+  },
+  cardFooter: {
+    marginTop: "auto",
+  },
+  cardSubtitle: {
+    fontSize: 12,
+    fontWeight: "500",
+    textAlign: "center",
+    opacity: 0.8,
+  },
+
+  // ... existing styles ...
   backButton: {
     alignSelf: "flex-start",
     marginBottom: 40,
@@ -462,12 +584,12 @@ const styles = StyleSheet.create({
   headerContainer: {
     alignItems: "center",
     marginBottom: 16,
-    marginTop: 48, // Move avatar further down
+    marginTop: 48,
   },
   profileImageContainer: {
     position: "relative",
     marginBottom: 20,
-    marginTop: 16, // Extra space above avatar
+    marginTop: 16,
   },
   profileImageGradient: {
     width: 150,
@@ -502,7 +624,7 @@ const styles = StyleSheet.create({
   },
   nameAge: {
     fontSize: 32,
-    fontWeight: "600",
+    fontWeight: "500",
     color: OnboardingColors.text.primary,
     marginBottom: 8,
     textAlign: "center",
@@ -523,37 +645,7 @@ const styles = StyleSheet.create({
     textAlign: "center",
     fontFamily: "Fraunces",
   },
-  summaryContainer: {
-    marginBottom: 40,
-  },
-  summaryCard: {
-    padding: 24,
-    borderRadius: 20,
-    borderWidth: 1,
-    borderColor: "rgba(255, 255, 255, 0.2)",
-    shadowColor: "#C6B2FF",
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.2,
-    shadowRadius: 12,
-    elevation: 6,
-  },
-  summaryHeader: {
-    flexDirection: "row",
-    alignItems: "center",
-    marginBottom: 12,
-  },
-  summaryTitle: {
-    fontSize: 16,
-    fontWeight: "600",
-    color: "#C6B2FF",
-    marginLeft: 8,
-  },
-  summaryText: {
-    fontSize: 16,
-    color: "rgba(255, 255, 255, 0.9)",
-    lineHeight: 24,
-    fontWeight: "400",
-  },
+
   photosSection: {
     marginBottom: 40,
   },
