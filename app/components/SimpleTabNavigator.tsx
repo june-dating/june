@@ -1,4 +1,4 @@
-import { Ionicons } from "@expo/vector-icons";
+import { FontAwesome6, Ionicons } from "@expo/vector-icons";
 import { BlurView } from "expo-blur";
 import React, { useEffect, useRef, useState } from "react";
 import {
@@ -16,9 +16,12 @@ const { width } = Dimensions.get("window");
 interface TabConfig {
   name: string;
   title: string;
-  icon: keyof typeof Ionicons.glyphMap;
-  iconFocused: keyof typeof Ionicons.glyphMap;
+  icon: keyof typeof Ionicons.glyphMap | keyof typeof FontAwesome6.glyphMap;
+  iconFocused:
+    | keyof typeof Ionicons.glyphMap
+    | keyof typeof FontAwesome6.glyphMap;
   component: React.ComponentType<any>;
+  iconType?: "ionicons" | "fontawesome6";
 }
 
 interface SimpleTabNavigatorProps {
@@ -43,8 +46,8 @@ export default function SimpleTabNavigator({
     Animated.spring(slideAnimation, {
       toValue: activeIndex * tabWidth,
       useNativeDriver: false,
-      tension: 120,
-      friction: 8,
+      tension: 70,
+      friction: 12,
     }).start();
   }, [activeTab, tabWidth, tabs]);
 
@@ -70,7 +73,7 @@ export default function SimpleTabNavigator({
       <View
         style={[styles.tabBarContainer, { paddingBottom: insets.bottom + 0 }]}
       >
-        <BlurView intensity={80} tint="dark" style={styles.tabBarBlur}>
+        <BlurView intensity={40} tint="dark" style={styles.tabBarBlur}>
           <View style={styles.tabBar}>
             {/* Animated Sliding Indicator */}
             <Animated.View
@@ -91,17 +94,34 @@ export default function SimpleTabNavigator({
                 activeOpacity={0.7}
               >
                 <Animated.View style={styles.tabContent}>
-                  <Ionicons
-                    name={activeTab === tab.name ? tab.iconFocused : tab.icon}
-                    size={20}
-                    color={activeTab === tab.name ? "#FFFFFF" : "#999999"}
-                    style={styles.tabIcon}
-                  />
+                  {tab.iconType === "fontawesome6" ? (
+                    <FontAwesome6
+                      name={
+                        activeTab === tab.name
+                          ? (tab.iconFocused as keyof typeof FontAwesome6.glyphMap)
+                          : (tab.icon as keyof typeof FontAwesome6.glyphMap)
+                      }
+                      size={22}
+                      color={activeTab === tab.name ? "#FFFFFF" : "#DDDDDD"}
+                      style={styles.tabIcon}
+                    />
+                  ) : (
+                    <Ionicons
+                      name={
+                        activeTab === tab.name
+                          ? (tab.iconFocused as keyof typeof Ionicons.glyphMap)
+                          : (tab.icon as keyof typeof Ionicons.glyphMap)
+                      }
+                      size={22}
+                      color={activeTab === tab.name ? "#FFFFFF" : "#DDDDDD"}
+                      style={styles.tabIcon}
+                    />
+                  )}
                   <Text
                     style={[
                       styles.tabLabel,
                       {
-                        color: activeTab === tab.name ? "#FFFFFF" : "#999999",
+                        color: activeTab === tab.name ? "#FFFFFF" : "#DDDDDD",
                         fontWeight: activeTab === tab.name ? "600" : "400",
                       },
                     ]}
@@ -135,7 +155,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 20,
   },
   tabBarBlur: {
-    borderRadius: 30,
+    borderRadius: 35,
     overflow: "hidden",
     shadowColor: "#000",
     shadowOffset: {
@@ -150,7 +170,7 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     backgroundColor: "rgba(26, 26, 26, 0.3)",
     borderRadius: 50,
-    paddingHorizontal: 16,
+    paddingHorizontal: 15,
     paddingVertical: 12,
     maxWidth: width * 0.85,
     minWidth: width * 0.7,

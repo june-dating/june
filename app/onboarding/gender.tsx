@@ -21,6 +21,7 @@ import Animated, {
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { OnboardingColors } from "../colors/index";
 import ProgressBar from "../components/ProgressBar";
+import { useOnboarding } from "../contexts/OnboardingContext";
 
 const { width, height } = Dimensions.get("window");
 
@@ -28,11 +29,18 @@ type GenderOption = "male" | "female" | "other";
 
 export default function GenderScreen() {
   const insets = useSafeAreaInsets();
+  const { onboardingData, updateOnboardingData } = useOnboarding();
+
+  // Initialize from context if available
   const [selectedGender, setSelectedGender] = useState<GenderOption | null>(
-    null
+    onboardingData.gender || null
   );
-  const [customGender, setCustomGender] = useState("");
-  const [showCustomInput, setShowCustomInput] = useState(false);
+  const [customGender, setCustomGender] = useState(
+    onboardingData.custom_gender_identity || ""
+  );
+  const [showCustomInput, setShowCustomInput] = useState(
+    onboardingData.gender === "other"
+  );
 
   const buttonScale = useSharedValue(1);
   const inputOpacity = useSharedValue(0);
@@ -40,21 +48,40 @@ export default function GenderScreen() {
   const titleOpacity = useSharedValue(0);
   const subtitleOpacity = useSharedValue(0);
 
+  const saveGenderToContext = (
+    gender: GenderOption,
+    customGenderText?: string
+  ) => {
+    const data: any = { gender };
+    if (gender === "other" && customGenderText) {
+      data.custom_gender_identity = customGenderText.trim();
+    } else {
+      // Clear custom gender if not "other"
+      data.custom_gender_identity = undefined;
+    }
+    updateOnboardingData(data);
+  };
+
   const handleGenderSelect = (gender: GenderOption) => {
     setSelectedGender(gender);
     if (gender === "other") {
       setShowCustomInput(true);
-      setCustomGender("");
+      setCustomGender(onboardingData.custom_gender_identity || "");
     } else {
       setShowCustomInput(false);
       setCustomGender("");
-      // Auto-navigate for male/female selections
+      // Save to context and auto-navigate for male/female selections
+      saveGenderToContext(gender);
       router.push("/onboarding/looking-for");
     }
   };
 
   const handleCustomGenderChange = (text: string) => {
     setCustomGender(text);
+    // Save to context if valid
+    if (text.trim().length > 0) {
+      saveGenderToContext("other", text);
+    }
   };
 
   const isValid =
@@ -63,6 +90,12 @@ export default function GenderScreen() {
 
   const handleNext = () => {
     if (isValid) {
+      // Ensure data is saved before navigation
+      if (selectedGender === "other") {
+        saveGenderToContext("other", customGender);
+      } else if (selectedGender) {
+        saveGenderToContext(selectedGender);
+      }
       router.push("/onboarding/looking-for");
     }
   };
@@ -319,8 +352,8 @@ const styles = StyleSheet.create({
     textAlign: "left",
     lineHeight: 24,
     maxWidth: "85%",
-    fontFamily: "Fraunces",
-    fontWeight: "300",
+    fontFamily: "Montserrat",
+    // fontWeight: "300",
   },
   optionsContainer: {
     flex: 1,
@@ -354,15 +387,14 @@ const styles = StyleSheet.create({
   },
   genderText: {
     fontSize: 18,
-    fontWeight: "300",
     color: OnboardingColors.text.secondary,
     marginLeft: 16,
-    fontFamily: "Fraunces",
+    fontFamily: "Montserrat",
   },
   genderTextSelected: {
     color: OnboardingColors.text.primary,
-    fontWeight: "300",
-    fontFamily: "Fraunces",
+    // fontWeight: "300",
+    fontFamily: "Montserrat",
   },
   customInputContainer: {
     marginTop: 8,

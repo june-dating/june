@@ -1,10 +1,24 @@
+/**
+ * Profile Screen - Enhanced and Refactored
+ *
+ * Features:
+ * - Professional profile header with name, age, location, and occupation
+ * - Interactive insight cards with smooth animations
+ * - Face photos carousel
+ * - Starfield background animation
+ * - TypeScript interfaces for better type safety
+ * - Organized component structure and styles
+ * - Centralized animation configuration
+ * - Glass morphism UI design
+ */
+
 "use client";
 
 import { Ionicons, MaterialCommunityIcons } from "@expo/vector-icons";
 import { useFonts } from "expo-font";
 import { LinearGradient } from "expo-linear-gradient";
 import { router } from "expo-router";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef } from "react";
 import {
   Dimensions,
   FlatList,
@@ -28,57 +42,115 @@ import Animated, {
 } from "react-native-reanimated";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { OnboardingColors } from "../colors";
-import InsightModal from "../components/InsightModal";
 
 const { width, height } = Dimensions.get("window");
 
-// Mock data - in production this would come from the backend
-const profileData = {
+// Types
+interface ProfileData {
+  name: string;
+  age: number;
+  location: string;
+  personality: string;
+  facePhotos: Array<{ id: string; uri: any }>;
+}
+
+interface InsightCard {
+  id: string;
+  title: string;
+  icon: string;
+  color: string;
+  iconLibrary: "Ionicons" | "MaterialCommunityIcons";
+  route: string;
+  isFullWidth?: boolean;
+}
+
+interface FacePhoto {
+  id: string;
+  uri: any;
+}
+
+interface Star {
+  id: number;
+  x: number;
+  y: number;
+  size: number;
+  opacity: number;
+}
+
+// Constants
+const PROFILE_DATA: ProfileData = {
   name: "Alice",
   age: 23,
-  location: "New York, USA", // Added location
+  location: "New York City, USA",
   personality: "INFJ | Author | Weekend poet",
-  juneThinks: [
-    "Deep listener",
-    "Thoughtful ambivert",
-    "Believer in real talk over small talk",
-    "Poet at heart",
-  ],
-  juneTips: [
-    "Be more spontaneous",
-    "Open up sooner - people want to see the real you",
-    "Try new activities outside your comfort zone",
-  ],
-  juneSays: [
-    "Genuine and patient",
-    "Great at meaningful conversations",
-    "Creative and expressive",
-    "Emotionally intelligent",
-  ],
   facePhotos: [
-    {
-      id: "2",
-      uri: require("../../assets/images/aija5.jpg"),
-    },
-    {
-      id: "1",
-      uri: require("../../assets/images/img2.jpg"),
-    },
-    {
-      id: "3",
-      uri: require("../../assets/images/img1.jpg"),
-    },
+    { id: "2", uri: require("../../assets/images/aija5.jpg") },
+    { id: "1", uri: require("../../assets/images/img2.jpg") },
+    { id: "3", uri: require("../../assets/images/img1.jpg") },
   ],
 };
 
-function StarField() {
-  const stars = Array.from({ length: 20 }, (_, i) => ({
+const INSIGHT_CARDS: InsightCard[] = [
+  {
+    id: "thinks",
+    title: "June thinks you're a...",
+    icon: "brain",
+    color: "#8B5CF6",
+    iconLibrary: "MaterialCommunityIcons",
+    route: "/Profilescreens/june-thinks",
+  },
+  {
+    id: "tips",
+    title: "June's tips to be a Better Date",
+    icon: "bulb",
+    color: "#F59E0B",
+    iconLibrary: "Ionicons",
+    route: "/Profilescreens/june-tips",
+  },
+  {
+    id: "looking",
+    title: "June is looking for someone who is...",
+    icon: "heart",
+    color: "#EF4444",
+    iconLibrary: "Ionicons",
+    route: "/Profilescreens/june-looking-for",
+    isFullWidth: true,
+  },
+];
+
+const ANIMATION_CONFIG = {
+  shimmer: {
+    duration: 3000,
+    easing: Easing.linear,
+  },
+  spring: {
+    damping: 15,
+    stiffness: 300,
+  },
+  fadeIn: {
+    delay: 200,
+    duration: 800,
+  },
+};
+
+// Utility Functions
+const generateStars = (count: number): Star[] => {
+  return Array.from({ length: count }, (_, i) => ({
     id: i,
     x: Math.random() * width,
     y: Math.random() * height,
-    size: Math.random() * 2 + 1,
-    opacity: Math.random() * 0.5 + 0.2,
+    size: Math.random() * 1.5 + 0.5,
+    opacity: Math.random() * 0.3 + 0.1,
   }));
+};
+
+const getGenderIcon = (gender: any) => {
+  return { icon: "person", color: "#6B7280" };
+};
+
+// Components
+function StarField() {
+  const stars = generateStars(15);
 
   return (
     <View style={styles.starField}>
@@ -96,14 +168,7 @@ function StarField() {
           ]}
           entering={FadeIn.delay(star.id * 100).duration(1000)}
         >
-          <View
-            style={[
-              styles.star,
-              {
-                opacity: star.opacity,
-              },
-            ]}
-          />
+          <View style={[styles.star, { opacity: star.opacity }]} />
         </Animated.View>
       ))}
     </View>
@@ -115,24 +180,26 @@ function ProfileHeader() {
 
   useEffect(() => {
     shimmer.value = withRepeat(
-      withTiming(1, { duration: 3000, easing: Easing.linear }),
+      withTiming(1, ANIMATION_CONFIG.shimmer),
       -1,
       false
     );
   }, []);
 
   const shimmerStyle = useAnimatedStyle(() => ({
-    opacity: shimmer.value * 0.3,
+    opacity: shimmer.value * 0.2,
   }));
 
   return (
     <Animated.View
       style={styles.headerContainer}
-      entering={FadeInUp.delay(200).duration(800)}
+      entering={FadeInUp.delay(ANIMATION_CONFIG.fadeIn.delay).duration(
+        ANIMATION_CONFIG.fadeIn.duration
+      )}
     >
       <View style={styles.profileImageContainer}>
         <LinearGradient
-          colors={["#fff", "#fff"]}
+          colors={["rgba(0, 0, 0, 0.1)", "rgba(0, 0, 0, 0.05)"]}
           style={styles.profileImageGradient}
         >
           <Image
@@ -144,21 +211,27 @@ function ProfileHeader() {
           <Animated.View style={[styles.profileGlowInner, shimmerStyle]} />
         </View>
       </View>
-      <Text style={styles.nameAge}>
-        {profileData.name}, {profileData.age}
-      </Text>
-      <View style={styles.locationRow}>
-        <Text>📍</Text>
-        {/* <Ionicons
-          name="location-outline"
-          size={16}
-          color="red"
-          style={{ marginRight: 4 }}
-        /> */}
-        <Text style={styles.locationText}>{profileData.location}</Text>
+
+      <View style={styles.nameContainer}>
+        <Text style={styles.nameAge}>
+          {PROFILE_DATA.name}, {PROFILE_DATA.age}
+        </Text>
       </View>
+
+      <View style={styles.infoContainer}>
+        <View style={styles.locationRow}>
+          <Ionicons
+            name="home"
+            size={16}
+            color={OnboardingColors.text.secondary}
+            style={styles.locationEmoji}
+          />
+          <Text style={styles.locationText}>{PROFILE_DATA.location}</Text>
+        </View>
+      </View>
+
       <View style={styles.personalityContainer}>
-        <Text style={styles.personalityLabel}>{profileData.personality}</Text>
+        <Text style={styles.personalityLabel}>{PROFILE_DATA.personality}</Text>
       </View>
     </Animated.View>
   );
@@ -169,7 +242,7 @@ function FacePhotosCarousel() {
     <View style={styles.facePhotoContainer}>
       <Image source={item.uri} style={styles.facePhoto} />
       <LinearGradient
-        colors={["transparent", "rgba(0,0,0,0.3)"]}
+        colors={["transparent", "rgba(0,0,0,0.4)"]}
         style={styles.facePhotoOverlay}
       />
     </View>
@@ -178,11 +251,11 @@ function FacePhotosCarousel() {
   return (
     <Animated.View
       style={styles.photosSection}
-      entering={FadeInUp.delay(600).duration(800)}
+      entering={FadeInUp.delay(600).duration(ANIMATION_CONFIG.fadeIn.duration)}
     >
       <Text style={styles.sectionTitle}>You</Text>
       <FlatList
-        data={profileData.facePhotos}
+        data={PROFILE_DATA.facePhotos}
         renderItem={renderFacePhoto}
         horizontal
         showsHorizontalScrollIndicator={false}
@@ -197,35 +270,31 @@ function FacePhotosCarousel() {
   );
 }
 
-function InsightCard({
-  title,
-  icon,
-  color = "#C6B2FF",
-  onPress,
-  isFullWidth = false,
-  iconLibrary = "Ionicons",
-}: {
+interface InsightCardProps {
   title: string;
   icon: any;
   color?: string;
   onPress: () => void;
   isFullWidth?: boolean;
-  iconLibrary?: string;
-}) {
+  iconLibrary?: "Ionicons" | "MaterialCommunityIcons";
+}
+
+function InsightCard({
+  title,
+  icon,
+  color = "#8B5CF6",
+  onPress,
+  isFullWidth = false,
+  iconLibrary = "Ionicons",
+}: InsightCardProps) {
   const scale = useSharedValue(1);
 
   const handlePressIn = () => {
-    scale.value = withSpring(0.95, {
-      damping: 15,
-      stiffness: 300,
-    });
+    scale.value = withSpring(0.95, ANIMATION_CONFIG.spring);
   };
 
   const handlePressOut = () => {
-    scale.value = withSpring(1, {
-      damping: 15,
-      stiffness: 300,
-    });
+    scale.value = withSpring(1, ANIMATION_CONFIG.spring);
   };
 
   const animatedStyle = useAnimatedStyle(() => ({
@@ -252,7 +321,11 @@ function InsightCard({
         style={styles.cardTouchable}
       >
         <LinearGradient
-          colors={[color + "25", color + "15", color + "10"]}
+          colors={[
+            "rgba(255, 255, 255, 0.4)",
+            "rgba(255, 255, 255, 0.3)",
+            "rgba(255, 255, 255, 0.2)",
+          ]}
           style={styles.card}
           start={{ x: 0, y: 0 }}
           end={{ x: 1, y: 1 }}
@@ -261,19 +334,16 @@ function InsightCard({
             <View
               style={[
                 styles.cardIconContainer,
-                { backgroundColor: color + "30" },
+                { backgroundColor: color + "20" },
               ]}
             >
               <IconComponent name={icon} size={28} color={color} />
             </View>
-            <Text
-              style={[styles.cardTitle, { color: "#fff" }]}
-              numberOfLines={2}
-            >
+            <Text style={styles.cardTitle} numberOfLines={2}>
               {title}
             </Text>
             <View style={styles.cardFooter}>
-              <Text style={[styles.cardSubtitle, { color: color }]}>
+              <Text style={[styles.cardSubtitle, { color }]}>
                 Tap to explore
               </Text>
             </View>
@@ -285,123 +355,38 @@ function InsightCard({
 }
 
 function InsightCardsSection() {
-  const [modalState, setModalState] = useState({
-    visible: false,
-    title: "",
-    icon: "",
-    points: [] as string[],
-    color: "#C6B2FF",
-    iconLibrary: "Ionicons",
-  });
-
-  // Add state to track the current data
-  const [currentData, setCurrentData] = useState({
-    juneThinks: profileData.juneThinks,
-    juneTips: profileData.juneTips,
-    juneSays: profileData.juneSays,
-  });
-
-  const openModal = (
-    title: string,
-    icon: any,
-    points: string[],
-    color: string,
-    iconLibrary: string = "Ionicons"
-  ) => {
-    setModalState({
-      visible: true,
-      title,
-      icon,
-      points,
-      color,
-      iconLibrary,
-    });
-  };
-
-  const closeModal = () => {
-    setModalState((prev) => ({ ...prev, visible: false }));
-  };
-
-  const handleSavePoints = (newPoints: string[]) => {
-    // Update the appropriate data based on modal title
-    if (modalState.title.includes("June thinks")) {
-      setCurrentData((prev) => ({ ...prev, juneThinks: newPoints }));
-    } else if (modalState.title.includes("tips")) {
-      setCurrentData((prev) => ({ ...prev, juneTips: newPoints }));
-    } else if (modalState.title.includes("looking for")) {
-      setCurrentData((prev) => ({ ...prev, juneSays: newPoints }));
-    }
-
-    // In a real app, you'd also send this to your backend here
-    console.log("Saving points:", newPoints);
-  };
-
   return (
-    <>
-      <Animated.View
-        style={styles.cardsSection}
-        entering={FadeInUp.delay(400).duration(800)}
-      >
-        <View style={styles.cardsRow}>
+    <Animated.View
+      style={styles.cardsSection}
+      entering={FadeInUp.delay(400).duration(ANIMATION_CONFIG.fadeIn.duration)}
+    >
+      <View style={styles.cardsRow}>
+        {INSIGHT_CARDS.slice(0, 2).map((card) => (
           <InsightCard
-            title="June thinks you're a..."
-            icon="brain"
-            color="#C6B2FF"
-            iconLibrary="MaterialCommunityIcons"
-            onPress={() =>
-              openModal(
-                "June thinks you're a...",
-                "brain",
-                currentData.juneThinks,
-                "#C6B2FF",
-                "MaterialCommunityIcons"
-              )
-            }
+            key={card.id}
+            title={card.title}
+            icon={card.icon}
+            color={card.color}
+            iconLibrary={card.iconLibrary}
+            onPress={() => router.push(card.route as any)}
           />
-          <InsightCard
-            title="June's tips to be a Better Date"
-            icon="bulb"
-            color="#FFB86C"
-            onPress={() =>
-              openModal(
-                "June's tips to be a Better Date: ",
-                "bulb",
-                currentData.juneTips,
-                "#FFB86C"
-              )
-            }
-          />
-        </View>
+        ))}
+      </View>
 
-        <View style={styles.singleCardRow}>
+      <View style={styles.singleCardRow}>
+        {INSIGHT_CARDS.slice(2).map((card) => (
           <InsightCard
-            title="June is looking for someone who is..."
-            icon="heart"
-            color="#FF6C8C"
-            onPress={() =>
-              openModal(
-                "June is looking for someone who is...",
-                "heart",
-                currentData.juneSays,
-                "#FF6C8C"
-              )
-            }
-            isFullWidth={true}
+            key={card.id}
+            title={card.title}
+            icon={card.icon}
+            color={card.color}
+            iconLibrary={card.iconLibrary}
+            onPress={() => router.push(card.route as any)}
+            isFullWidth={card.isFullWidth}
           />
-        </View>
-      </Animated.View>
-
-      <InsightModal
-        visible={modalState.visible}
-        onClose={closeModal}
-        title={modalState.title}
-        icon={modalState.icon}
-        points={modalState.points}
-        color={modalState.color}
-        iconLibrary={modalState.iconLibrary}
-        onSavePoints={handleSavePoints}
-      />
-    </>
+        ))}
+      </View>
+    </Animated.View>
   );
 }
 
@@ -410,13 +395,14 @@ export default function ProfileScreen() {
   const scrollViewRef = useRef<ScrollView>(null);
   const [fontsLoaded] = useFonts({
     Fraunces: require("../../assets/fonts/Fraunces-VariableFont_SOFT,WONK,opsz,wght.ttf"),
+    Montserrat: require("../../assets/fonts/Montserrat-VariableFont_wght.ttf"),
   });
 
   if (!fontsLoaded) return null;
 
   return (
     <View style={styles.container}>
-      <StatusBar barStyle={OnboardingColors.statusBar || "light-content"} />
+      <StatusBar barStyle={OnboardingColors.statusBar} />
       <LinearGradient
         colors={[
           OnboardingColors.gradient.primary,
@@ -424,28 +410,28 @@ export default function ProfileScreen() {
           OnboardingColors.gradient.tertiary,
         ]}
         style={styles.gradient}
-        start={{ x: 0, y: 0 }}
-        end={{ x: 1, y: 1 }}
+        start={{ x: 1, y: 1 }}
+        end={{ x: 0, y: 0 }}
       >
         <StarField />
+
         {/* Edit Button */}
         <TouchableOpacity
-          style={[styles.editButton, { top: insets.top + 20 }]}
+          style={[styles.editButton, { top: insets.top + 10 }]}
           onPress={() => router.push("/photo-upload")}
           activeOpacity={0.7}
         >
-          <Ionicons name="create-outline" size={24} color="#fff" />
+          <Ionicons name="create-outline" size={24} color="#000000" />
         </TouchableOpacity>
+
         <ScrollView
           ref={scrollViewRef}
-          style={[styles.scrollView, { paddingTop: insets.top + 20 }]}
+          style={[styles.scrollView, { paddingTop: insets.top + 10 }]}
           showsVerticalScrollIndicator={false}
           contentContainerStyle={styles.scrollContent}
         >
           <ProfileHeader />
-
           <InsightCardsSection />
-
           <FacePhotosCarousel />
         </ScrollView>
       </LinearGradient>
@@ -454,12 +440,14 @@ export default function ProfileScreen() {
 }
 
 const styles = StyleSheet.create({
+  // Container and Layout Styles
   container: {
     flex: 1,
   },
   gradient: {
     flex: 1,
   },
+  // Background Elements
   starField: {
     position: "absolute",
     top: 0,
@@ -470,11 +458,11 @@ const styles = StyleSheet.create({
   star: {
     width: "100%",
     height: "100%",
-    backgroundColor: "#C6B2FF",
+    backgroundColor: "rgba(0, 0, 0, 0.3)",
     borderRadius: 1,
   },
 
-  // Enhanced Card Styles
+  // Insight Cards Styles
   cardsSection: {
     marginTop: 32,
     marginBottom: 40,
@@ -502,13 +490,16 @@ const styles = StyleSheet.create({
     flex: 1,
     padding: 24,
     borderRadius: 24,
-    borderWidth: 1,
-    borderColor: "rgba(255, 255, 255, 0.1)",
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 8 },
-    shadowOpacity: 0.3,
-    shadowRadius: 20,
-    elevation: 10,
+    borderWidth: 1.5,
+    borderColor: "rgba(255, 255, 255, 0.25)",
+    shadowColor: "rgba(0, 0, 0, 0.25)",
+    shadowOffset: { width: 0, height: 12 },
+    shadowOpacity: 0.2,
+    shadowRadius: 25,
+    elevation: 12,
+    backgroundColor: "rgba(255, 255, 255, 0.15)",
+    // Enhanced glass effect
+    backdropFilter: "blur(30px)",
   },
   cardContent: {
     flex: 1,
@@ -522,41 +513,56 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "center",
     marginBottom: 12,
+    backgroundColor: "rgba(255, 255, 255, 0.25)",
+    borderWidth: 1.5,
+    borderColor: "rgba(255, 255, 255, 0.35)",
+    shadowColor: "rgba(0, 0, 0, 0.15)",
+    shadowOffset: { width: 0, height: 6 },
+    shadowOpacity: 0.15,
+    shadowRadius: 12,
+    elevation: 6,
   },
   cardTitle: {
     fontSize: 15,
-    fontWeight: "400",
+    fontWeight: "600",
     textAlign: "center",
     marginBottom: 8,
     lineHeight: 20,
     fontFamily: "Fraunces",
-    letterSpacing: 0.6,
+    letterSpacing: 0.3,
+    color: "rgba(0, 0, 0, 0.85)",
+    textShadowColor: "rgba(255, 255, 255, 0.5)",
+    textShadowOffset: { width: 0, height: 1 },
+    textShadowRadius: 2,
   },
   cardFooter: {
     marginTop: "auto",
   },
   cardSubtitle: {
     fontSize: 12,
-    fontWeight: "500",
+    fontWeight: "700",
     textAlign: "center",
+    fontFamily: "Montserrat",
+    textTransform: "uppercase",
+    letterSpacing: 1,
     opacity: 0.8,
   },
 
-  // ... existing styles ...
+  // Header and Navigation Styles
   backButton: {
     alignSelf: "flex-start",
     marginBottom: 40,
     width: 40,
     height: 40,
     borderRadius: 20,
-    backgroundColor: "rgba(255, 255, 255, 0.15)",
+    backgroundColor: "rgba(0, 0, 0, 0.1)",
     alignItems: "center",
     justifyContent: "center",
-    shadowColor: "#C6B2FF",
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.3,
-    shadowRadius: 8,
-    elevation: 6,
+    shadowColor: OnboardingColors.shadow.primary,
+    shadowOffset: OnboardingColors.shadow.offset,
+    shadowOpacity: OnboardingColors.shadow.opacity.light,
+    shadowRadius: OnboardingColors.shadow.radius.small,
+    elevation: OnboardingColors.shadow.elevation.light,
   },
   editButton: {
     position: "absolute",
@@ -565,14 +571,16 @@ const styles = StyleSheet.create({
     width: 40,
     height: 40,
     borderRadius: 20,
-    backgroundColor: "rgba(255, 255, 255, 0.15)",
+    backgroundColor: "rgba(255, 255, 255, 0.9)",
     alignItems: "center",
     justifyContent: "center",
-    shadowColor: "#C6B2FF",
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.3,
-    shadowRadius: 8,
-    elevation: 6,
+    shadowColor: OnboardingColors.shadow.primary,
+    shadowOffset: OnboardingColors.shadow.offset,
+    shadowOpacity: OnboardingColors.shadow.opacity.medium,
+    shadowRadius: OnboardingColors.shadow.radius.medium,
+    elevation: OnboardingColors.shadow.elevation.medium,
+    borderWidth: 1,
+    borderColor: "rgba(0, 0, 0, 0.1)",
   },
   scrollView: {
     flex: 1,
@@ -581,76 +589,106 @@ const styles = StyleSheet.create({
     paddingHorizontal: 24,
     paddingBottom: 100,
   },
+
+  // Profile Header Styles
   headerContainer: {
     alignItems: "center",
     marginBottom: 16,
-    marginTop: 48,
+    marginTop: 20,
   },
   profileImageContainer: {
     position: "relative",
     marginBottom: 20,
-    marginTop: 16,
+    marginTop: 8,
   },
   profileImageGradient: {
     width: 150,
     height: 150,
     borderRadius: 75,
-    padding: 4,
-    shadowColor: "#fff",
+    padding: 3,
+    shadowColor: OnboardingColors.shadow.primary,
     shadowOffset: { width: 0, height: 8 },
-    shadowOpacity: 0.4,
+    shadowOpacity: 0.2,
     shadowRadius: 16,
-    elevation: 10,
+    elevation: 8,
   },
   profileImage: {
     width: "100%",
     height: "100%",
-    borderRadius: 71,
+    borderRadius: 72,
   },
   profileGlow: {
     position: "absolute",
-    top: -10,
-    left: -10,
-    right: -10,
-    bottom: -10,
-    borderRadius: 85,
+    top: -8,
+    left: -8,
+    right: -8,
+    bottom: -8,
+    borderRadius: 83,
     zIndex: -1,
   },
   profileGlowInner: {
     width: "100%",
     height: "100%",
-    borderRadius: 85,
-    backgroundColor: "#C6B2FF",
+    borderRadius: 83,
+    backgroundColor: "rgba(0, 0, 0, 0.05)",
+  },
+  nameContainer: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    marginBottom: 8,
+    position: "relative",
   },
   nameAge: {
     fontSize: 32,
-    fontWeight: "500",
+    fontWeight: "600",
     color: OnboardingColors.text.primary,
-    marginBottom: 8,
     textAlign: "center",
     fontFamily: "Fraunces",
   },
+  genderBadge: {
+    marginLeft: 12,
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    backgroundColor: "rgba(255, 255, 255, 0.9)",
+    alignItems: "center",
+    justifyContent: "center",
+    shadowColor: OnboardingColors.shadow.primary,
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 2,
+    borderWidth: 1,
+    borderColor: "rgba(0, 0, 0, 0.05)",
+  },
   personalityContainer: {
-    backgroundColor: "rgba(255, 255, 255, 0.1)",
-    paddingHorizontal: 16,
-    paddingVertical: 8,
+    backgroundColor: "rgba(255, 255, 255, 0.8)",
+    paddingHorizontal: 20,
+    paddingVertical: 10,
     borderRadius: 20,
     borderWidth: 1,
-    borderColor: "rgba(255, 255, 255, 0.2)",
+    borderColor: "rgba(0, 0, 0, 0.1)",
+    shadowColor: OnboardingColors.shadow.primary,
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.05,
+    shadowRadius: 8,
+    elevation: 2,
   },
   personalityLabel: {
     fontSize: 14,
     color: OnboardingColors.text.secondary,
-    fontWeight: "400",
+    fontWeight: "500",
     textAlign: "center",
-    fontFamily: "Fraunces",
+    fontFamily: "Montserrat",
   },
 
+  // Photos Section Styles
   photosSection: {
     marginBottom: 40,
   },
   sectionTitle: {
-    fontSize: 20,
+    fontSize: 24,
     fontWeight: "700",
     color: OnboardingColors.text.primary,
     marginBottom: 16,
@@ -663,14 +701,16 @@ const styles = StyleSheet.create({
   facePhotoContainer: {
     width: width * 0.8,
     height: width * 1.0,
-    borderRadius: 20,
+    borderRadius: 24,
     overflow: "hidden",
     marginRight: 16,
-    shadowColor: "#C6B2FF",
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.3,
-    shadowRadius: 12,
-    elevation: 8,
+    shadowColor: OnboardingColors.shadow.primary,
+    shadowOffset: { width: 0, height: 8 },
+    shadowOpacity: 0.15,
+    shadowRadius: 20,
+    elevation: 10,
+    borderWidth: 1,
+    borderColor: "rgba(0, 0, 0, 0.05)",
   },
   facePhoto: {
     width: "100%",
@@ -692,9 +732,9 @@ const styles = StyleSheet.create({
     borderRadius: 16,
     overflow: "hidden",
     marginBottom: 12,
-    shadowColor: "#C6B2FF",
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.2,
+    shadowColor: OnboardingColors.shadow.primary,
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.1,
     shadowRadius: 8,
     elevation: 4,
   },
@@ -726,31 +766,33 @@ const styles = StyleSheet.create({
     padding: 24,
     borderRadius: 20,
     borderWidth: 1,
-    borderColor: "rgba(255, 255, 255, 0.2)",
+    borderColor: "rgba(0, 0, 0, 0.1)",
     alignItems: "center",
-    shadowColor: "#C6B2FF",
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.2,
-    shadowRadius: 12,
-    elevation: 6,
+    backgroundColor: "rgba(255, 255, 255, 0.8)",
+    shadowColor: OnboardingColors.shadow.primary,
+    shadowOffset: OnboardingColors.shadow.offset,
+    shadowOpacity: OnboardingColors.shadow.opacity.light,
+    shadowRadius: OnboardingColors.shadow.radius.medium,
+    elevation: OnboardingColors.shadow.elevation.light,
   },
   footerTitle: {
     fontSize: 18,
     fontWeight: "600",
-    color: "#FFFFFF",
+    color: OnboardingColors.text.primary,
     marginBottom: 20,
     textAlign: "center",
+    fontFamily: "Fraunces",
   },
   goLiveButton: {
     width: 200,
     height: 50,
     borderRadius: 25,
     overflow: "hidden",
-    shadowColor: "#8B5FBF",
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.3,
-    shadowRadius: 12,
-    elevation: 8,
+    shadowColor: OnboardingColors.shadow.primary,
+    shadowOffset: OnboardingColors.shadow.offset,
+    shadowOpacity: OnboardingColors.shadow.opacity.medium,
+    shadowRadius: OnboardingColors.shadow.radius.medium,
+    elevation: OnboardingColors.shadow.elevation.medium,
   },
   goLiveGradient: {
     flex: 1,
@@ -762,7 +804,8 @@ const styles = StyleSheet.create({
   goLiveText: {
     fontSize: 16,
     fontWeight: "700",
-    color: "#FFFFFF",
+    color: OnboardingColors.text.button,
+    fontFamily: "Fraunces",
   },
   buttonShimmer: {
     position: "absolute",
@@ -818,17 +861,24 @@ const styles = StyleSheet.create({
     height: "100%",
     borderRadius: 16,
   },
+  infoContainer: {
+    alignItems: "center",
+    marginTop: 8,
+    marginBottom: 12,
+  },
   locationRow: {
     flexDirection: "row",
     alignItems: "center",
-    marginTop: 4,
-    marginBottom: 8,
+  },
+  locationEmoji: {
+    fontSize: 16,
+    marginRight: 4,
   },
   locationText: {
     fontSize: 15,
     color: OnboardingColors.text.secondary,
-    fontWeight: "300",
+    fontWeight: "400",
     textAlign: "center",
-    fontFamily: "Fraunces",
+    fontFamily: "Montserrat",
   },
 });

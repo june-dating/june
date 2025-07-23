@@ -5,6 +5,7 @@ import Animated, {
   useSharedValue,
   withTiming,
 } from "react-native-reanimated";
+import { OnboardingColors } from "../colors/index";
 
 interface ProgressBarProps {
   progress: number; // 0-100
@@ -17,7 +18,7 @@ export default function ProgressBar({
   progress,
   step,
   totalSteps,
-  color = "#FFF",
+  color = OnboardingColors.background.progressFill,
 }: ProgressBarProps) {
   const progressWidth = useSharedValue(0);
 
@@ -53,7 +54,7 @@ const styles = StyleSheet.create({
   },
   progressBackground: {
     height: 4,
-    backgroundColor: "rgba(255, 255, 255, 0.3)",
+    backgroundColor: OnboardingColors.background.progressBackground,
     borderRadius: 2,
     marginBottom: 8,
   },
@@ -63,7 +64,7 @@ const styles = StyleSheet.create({
   },
   progressText: {
     fontSize: 14,
-    color: "rgba(255, 255, 255, 0.8)",
+    color: OnboardingColors.text.progress,
     textAlign: "right",
     fontWeight: "500",
   },

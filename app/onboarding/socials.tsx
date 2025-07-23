@@ -1,4 +1,4 @@
-import { Ionicons } from "@expo/vector-icons";
+import { FontAwesome6, Ionicons } from "@expo/vector-icons";
 import { LinearGradient } from "expo-linear-gradient";
 import { router } from "expo-router";
 import React, { useEffect, useRef, useState } from "react";
@@ -19,6 +19,7 @@ import {
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { OnboardingColors } from "../colors/index";
 import ProgressBar from "../components/ProgressBar";
+import { useOnboarding } from "../contexts/OnboardingContext";
 
 const { width, height } = Dimensions.get("window");
 
@@ -32,13 +33,32 @@ interface SocialData {
 
 export default function SocialsScreen() {
   const insets = useSafeAreaInsets();
+  const { onboardingData, updateOnboardingData } = useOnboarding();
+
+  // Initialize social data from context
+  const initializeSocialData = (): Record<SocialPlatform, SocialData> => {
+    return {
+      instagram: {
+        username: onboardingData.instagram_username?.replace("@", "") || "",
+        isValid: !!onboardingData.instagram_username,
+        isFocused: false,
+      },
+      twitter: {
+        username: onboardingData.twitter_username?.replace("@", "") || "",
+        isValid: !!onboardingData.twitter_username,
+        isFocused: false,
+      },
+      linkedin: {
+        username: onboardingData.linkedin_username || "",
+        isValid: !!onboardingData.linkedin_username,
+        isFocused: false,
+      },
+    };
+  };
+
   const [socialData, setSocialData] = useState<
     Record<SocialPlatform, SocialData>
-  >({
-    instagram: { username: "", isValid: false, isFocused: false },
-    twitter: { username: "", isValid: false, isFocused: false },
-    linkedin: { username: "", isValid: false, isFocused: false },
-  });
+  >(initializeSocialData());
   const [isAnyValid, setIsAnyValid] = useState(true);
   const [keyboardHeight, setKeyboardHeight] = useState(0);
   const [isKeyboardVisible, setIsKeyboardVisible] = useState(false);
@@ -80,6 +100,28 @@ export default function SocialsScreen() {
     };
   }, []);
 
+  const saveSocialsToContext = (platform: SocialPlatform, username: string) => {
+    const trimmedUsername = username.trim();
+    const contextData: any = {};
+
+    if (platform === "instagram") {
+      // Instagram is required and needs @ prefix for database
+      contextData.instagram_username = trimmedUsername
+        ? `@${trimmedUsername}`
+        : "";
+    } else if (platform === "twitter") {
+      // Twitter is optional and needs @ prefix for database
+      contextData.twitter_username = trimmedUsername
+        ? `@${trimmedUsername}`
+        : undefined;
+    } else if (platform === "linkedin") {
+      // LinkedIn is optional and no @ prefix for database
+      contextData.linkedin_username = trimmedUsername || undefined;
+    }
+
+    updateOnboardingData(contextData);
+  };
+
   const updateSocialData = (
     platform: SocialPlatform,
     updates: Partial<SocialData>
@@ -90,7 +132,7 @@ export default function SocialsScreen() {
         [platform]: { ...prev[platform], ...updates },
       };
 
-      // Always enable the button
+      // Always enable the button (Instagram requirement is handled by validation)
       setIsAnyValid(true);
 
       return newData;
@@ -130,6 +172,11 @@ export default function SocialsScreen() {
     const isValid = validateUsername(cleaned, platform);
 
     updateSocialData(platform, { username: cleaned, isValid });
+
+    // Save to context if valid or if clearing the field
+    if (isValid || cleaned.length === 0) {
+      saveSocialsToContext(platform, cleaned);
+    }
   };
 
   const handleInputFocus = (platform: SocialPlatform) => {
@@ -142,10 +189,19 @@ export default function SocialsScreen() {
       }
     });
 
-    // Scroll to the focused input after a short delay, but not all the way to the end
+    // Calculate scroll position based on platform index
+    const platformIndex = ["instagram", "twitter", "linkedin"].indexOf(
+      platform
+    );
+    const scrollOffset = platformIndex * 100; // Approximate height of each platform card
+
+    // Scroll with a slight delay to ensure keyboard is fully shown
     setTimeout(() => {
-      scrollViewRef.current?.scrollTo({ y: 100, animated: true });
-    }, 300);
+      scrollViewRef.current?.scrollTo({
+        y: scrollOffset,
+        animated: true,
+      });
+    }, 100);
   };
 
   const handleInputBlur = (platform: SocialPlatform) => {
@@ -159,6 +215,12 @@ export default function SocialsScreen() {
 
   const handleNext = () => {
     if (isAnyValid) {
+      // Ensure all data is saved before navigation
+      Object.entries(socialData).forEach(([platform, data]) => {
+        if (data.isValid) {
+          saveSocialsToContext(platform as SocialPlatform, data.username);
+        }
+      });
       router.push("/onboarding/phone");
     }
   };
@@ -173,7 +235,7 @@ export default function SocialsScreen() {
       case "instagram":
         return "logo-instagram";
       case "twitter":
-        return "logo-twitter";
+        return "logo-twitter"; // Keep as Ionicons type for type safety, actual rendering handled conditionally
       case "linkedin":
         return "logo-linkedin";
       default:
@@ -272,18 +334,22 @@ export default function SocialsScreen() {
                         <View
                           style={[
                             styles.platformIconContainer,
-                            isTyping && styles.platformIconContainerTyping,
+                            isSelected && styles.platformIconContainerSelected,
                           ]}
                         >
-                          <Ionicons
-                            name={getPlatformIcon(platform)}
-                            size={20}
-                            color={
-                              isSelected
-                                ? OnboardingColors.icon.primary
-                                : OnboardingColors.icon.secondary
-                            }
-                          />
+                          {platform === "twitter" ? (
+                            <FontAwesome6
+                              name="x-twitter"
+                              size={20}
+                              color={isSelected ? "#000000" : "#000000"}
+                            />
+                          ) : (
+                            <Ionicons
+                              name={getPlatformIcon(platform)}
+                              size={28}
+                              color={isSelected ? "#000000" : "#000000"}
+                            />
+                          )}
                         </View>
 
                         <View style={styles.platformContent}>
@@ -299,7 +365,7 @@ export default function SocialsScreen() {
                                 style={{
                                   color: OnboardingColors.text.platformInput,
                                   fontSize: 18,
-                                  fontFamily: "Fraunces",
+                                  fontFamily: "Montserrat",
                                   marginRight: 2,
                                 }}
                               >
@@ -320,7 +386,9 @@ export default function SocialsScreen() {
                               }
                               onFocus={() => handleInputFocus(platform)}
                               onBlur={() => handleInputBlur(platform)}
-                              placeholder={platform}
+                              placeholder={
+                                platform === "twitter" ? "twitter/x" : platform
+                              }
                               placeholderTextColor={
                                 OnboardingColors.text.quaternary
                               }
@@ -336,10 +404,10 @@ export default function SocialsScreen() {
                                 color: OnboardingColors.text.quaternary,
                                 fontSize: 12,
                                 marginTop: 2,
-                                fontFamily: "Fraunces",
+                                // fontFamily: "Montserrat",
                               }}
                             >
-                              required
+                              *Required
                             </Text>
                           )}
                         </View>
@@ -363,7 +431,12 @@ export default function SocialsScreen() {
               </ScrollView>
 
               {/* Next Button - Fixed at bottom */}
-              <View style={styles.buttonContainer}>
+              <View
+                style={[
+                  styles.buttonContainer,
+                  isKeyboardVisible && { marginBottom: -15 },
+                ]}
+              >
                 <View style={styles.buttonWrapper}>
                   <TouchableOpacity
                     style={[
@@ -424,12 +497,14 @@ const styles = StyleSheet.create({
   content: {
     flex: 1,
     paddingHorizontal: 24,
+    paddingBottom: 40,
+    justifyContent: "space-between",
   },
   scrollView: {
     flex: 1,
   },
   scrollContent: {
-    paddingBottom: 0,
+    flexGrow: 1,
   },
   progressContainer: {
     marginBottom: 32,
@@ -452,8 +527,8 @@ const styles = StyleSheet.create({
     textAlign: "left",
     lineHeight: 24,
     maxWidth: "85%",
-    fontFamily: "Fraunces",
-    fontWeight: "300",
+    fontFamily: "Montserrat",
+    // fontWeight: "300",
   },
   platformsContainer: {
     paddingTop: 30,
@@ -492,24 +567,20 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     marginRight: 16,
   },
-  platformIconContainerTyping: {
-    backgroundColor: OnboardingColors.background.platformIconContainerTyping,
+  platformIconContainerSelected: {
+    backgroundColor: "transparent",
   },
   platformContent: {
     flex: 1,
   },
   platformInput: {
-    fontSize: 18,
+    fontSize: 16,
     color: OnboardingColors.text.platformInput,
-    fontWeight: "300",
-    paddingVertical: 0,
-    paddingHorizontal: 0,
-    fontFamily: "Fraunces",
+    fontFamily: "Montserrat",
   },
   platformInputSelected: {
     color: OnboardingColors.text.platformInputSelected,
-    fontFamily: "Fraunces",
-    fontWeight: "300",
+    fontFamily: "Montserrat",
   },
   validationIcon: {
     marginLeft: 12,

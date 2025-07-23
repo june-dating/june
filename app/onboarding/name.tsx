@@ -22,12 +22,14 @@ import Animated, {
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { OnboardingColors } from "../colors/index";
 import ProgressBar from "../components/ProgressBar";
+import { useOnboarding } from "../contexts/OnboardingContext";
 
 const { width, height } = Dimensions.get("window");
 
 export default function NameScreen() {
   const insets = useSafeAreaInsets();
-  const [name, setName] = useState("");
+  const { onboardingData, updateOnboardingData } = useOnboarding();
+  const [name, setName] = useState(onboardingData.full_name || "");
   const [isValid, setIsValid] = useState(false);
 
   const buttonScale = useSharedValue(1);
@@ -43,8 +45,18 @@ export default function NameScreen() {
 
     if (valid) {
       checkIconOpacity.value = withSpring(1);
+      // Save to context immediately when valid
+      updateOnboardingData({ full_name: text.trim() });
     } else {
       checkIconOpacity.value = withSpring(0);
+    }
+  };
+
+  const handleNext = () => {
+    if (isValid) {
+      // Ensure data is saved before navigation
+      updateOnboardingData({ full_name: name.trim() });
+      router.push("/onboarding/birthday");
     }
   };
 
@@ -73,6 +85,12 @@ export default function NameScreen() {
     titleOpacity.value = withTiming(1, { duration: 600 });
     subtitleOpacity.value = withTiming(1, { duration: 800 });
     inputOpacity.value = withTiming(1, { duration: 1000 });
+
+    // Check if we already have a valid name from context
+    if (onboardingData.full_name && onboardingData.full_name.length >= 2) {
+      setIsValid(true);
+      checkIconOpacity.value = withTiming(1);
+    }
   }, []);
 
   return (
@@ -138,7 +156,7 @@ export default function NameScreen() {
               >
                 <TouchableOpacity
                   style={[styles.button, !isValid && styles.buttonDisabled]}
-                  onPress={() => router.push("/onboarding/birthday")}
+                  onPress={handleNext}
                   disabled={!isValid}
                   activeOpacity={0.8}
                 >
@@ -215,7 +233,7 @@ const styles = StyleSheet.create({
     textAlign: "left",
     lineHeight: 24,
     maxWidth: "85%",
-    fontFamily: "Fraunces",
+    fontFamily: "Montserrat",
   },
   inputContainer: {
     flex: 1,
@@ -244,9 +262,9 @@ const styles = StyleSheet.create({
     flex: 1,
     fontSize: 18,
     color: OnboardingColors.text.primary,
-    fontWeight: "300",
-    fontFamily: "Fraunces",
-    letterSpacing: 0.5,
+    // fontWeight: "300",
+    fontFamily: "Montserrat",
+    // letterSpacing: 0.5,
   },
   checkIcon: {
     marginLeft: 12,
@@ -285,5 +303,7 @@ const styles = StyleSheet.create({
   },
   buttonTextDisabled: {
     color: OnboardingColors.text.buttonDisabled,
+    fontWeight: "700",
+    fontFamily: "Fraunces",
   },
 });

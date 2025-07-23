@@ -154,15 +154,13 @@ export default function VoiceOnboardingScreen() {
                 onPress={handleDone}
                 activeOpacity={0.85}
               >
+                <Text style={styles.doneButtonText}>Continue</Text>
                 <Ionicons
-                  name="checkmark-circle"
+                  name="arrow-forward"
                   size={22}
+                  style={{ marginLeft: 8, alignSelf: "center" }}
                   color={OnboardingColors.icon.checkmark}
-                  style={{ marginRight: 8 }}
                 />
-                <Text style={styles.doneButtonText}>
-                  All done? Create my profile
-                </Text>
               </TouchableOpacity>
             )}
           </View>
@@ -208,8 +206,7 @@ const styles = StyleSheet.create({
     color: OnboardingColors.text.secondary,
     textAlign: "left",
     lineHeight: 26,
-    fontFamily: "Fraunces",
-    fontWeight: "400",
+    fontFamily: "Montserrat",
     marginHorizontal: 0,
     paddingBottom: 30,
     maxWidth: "85%",
@@ -282,7 +279,6 @@ const styles = StyleSheet.create({
     fontSize: 18,
     color: OnboardingColors.text.primary,
     fontFamily: "Fraunces",
-    fontWeight: "400",
     letterSpacing: 0.7,
   },
 });

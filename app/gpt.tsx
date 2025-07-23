@@ -1,6 +1,5 @@
 "use client";
 
-import { BlurView } from "expo-blur";
 import { LinearGradient } from "expo-linear-gradient";
 import { router } from "expo-router";
 
@@ -37,8 +36,10 @@ export default function GPTScreen() {
   const [isCopied, setIsCopied] = useState(false);
   const [showError, setShowError] = useState(false);
   const scrollViewRef = useRef<ScrollView>(null);
+  const step2Ref = useRef<View>(null);
   const [fontsLoaded] = useFonts({
     Fraunces: require("../assets/fonts/Fraunces-VariableFont_SOFT,WONK,opsz,wght.ttf"),
+    Montserrat: require("../assets/fonts/Montserrat-VariableFont_wght.ttf"),
   });
   if (!fontsLoaded) return null;
 
@@ -80,14 +81,28 @@ export default function GPTScreen() {
   };
 
   const handleTextInputFocus = () => {
-    // Clear error when user focuses on input
     if (showError) {
       setShowError(false);
     }
-    // Delay to ensure keyboard animation has started
+    // Scroll to show the entire Step 2 section when keyboard appears
     setTimeout(() => {
-      scrollViewRef.current?.scrollToEnd({ animated: true });
-    }, 0);
+      step2Ref.current?.measureLayout(
+        scrollViewRef.current as any,
+        (x, y) => {
+          scrollViewRef.current?.scrollTo({
+            y: Math.max(0, y - 40), // Show Step 2 with some padding
+            animated: true,
+          });
+        },
+        () => {
+          // Fallback to fixed position if measure fails
+          scrollViewRef.current?.scrollTo({
+            y: 180,
+            animated: true,
+          });
+        }
+      );
+    }, 150); // Longer delay to ensure keyboard animation starts
   };
 
   // Truncate prompt for preview
@@ -115,13 +130,9 @@ export default function GPTScreen() {
           behavior={Platform.OS === "ios" ? "padding" : "height"}
           keyboardVerticalOffset={Platform.OS === "ios" ? 0 : 20}
         >
-          <View style={[styles.content, { paddingTop: insets.top + 20 }]}>
+          <View style={[styles.content, { paddingTop: insets.top + 60 }]}>
             {/* Header */}
             <View style={styles.headerContainer}>
-              {/* <Image
-                source={require("../assets/images/onboarding/junelogo.png")}
-                style={{ width: 70, height: 70 }}
-              /> */}
               <Text style={styles.title}>Let's dive deeper</Text>
               <Text style={styles.subtitle}>
                 We'll use ChatGPT to discover more about yourself
@@ -136,108 +147,121 @@ export default function GPTScreen() {
               keyboardShouldPersistTaps="handled"
             >
               {/* Step 1: Copy prompt */}
-              <View style={styles.stepRow}>
-                <View style={styles.stepBadge}>
-                  <Text style={styles.stepBadgeText}>Step 1</Text>
+              <View style={styles.stepContainer}>
+                <View style={styles.stepHeader}>
+                  <View style={styles.stepBadge}>
+                    <Text style={styles.stepBadgeText}>Step 1</Text>
+                  </View>
+                  <View style={styles.stepTitleContainer}>
+                    <Text style={styles.stepLabel}>Copy this prompt</Text>
+                  </View>
+                  <TouchableOpacity
+                    onPress={copyPrompt}
+                    style={styles.iconButton}
+                    activeOpacity={0.7}
+                  >
+                    <Ionicons
+                      name={isCopied ? "checkmark" : "copy-outline"}
+                      size={18}
+                      color="#000000"
+                    />
+                  </TouchableOpacity>
                 </View>
-                <Ionicons
-                  name="document-text-outline"
-                  size={24}
-                  color={OnboardingColors.icon.primary}
-                  style={styles.stepIcon}
-                />
-                <Text style={styles.stepLabel}>Copy this prompt</Text>
+
                 <TouchableOpacity
-                  onPress={copyPrompt}
-                  style={styles.iconButton}
+                  onPress={() => setShowFullPrompt((v) => !v)}
                   activeOpacity={0.7}
                 >
+                  <View style={styles.promptBox}>
+                    <Text style={styles.promptText}>{promptPreview}</Text>
+                  </View>
+                </TouchableOpacity>
+
+                {/* Open ChatGPT App Button */}
+                <TouchableOpacity
+                  style={styles.openChatGPTButton}
+                  onPress={openChatGPT}
+                  activeOpacity={0.85}
+                >
                   <Ionicons
-                    name={isCopied ? "checkmark" : "copy-outline"}
-                    size={20}
-                    color="#fff"
+                    name="open-outline"
+                    size={18}
+                    color="#000000"
+                    style={{ marginRight: 10 }}
                   />
+                  <Text style={styles.openChatGPTButtonText}>Open ChatGPT</Text>
                 </TouchableOpacity>
               </View>
-              <TouchableOpacity
-                onPress={() => setShowFullPrompt((v) => !v)}
-                activeOpacity={0.7}
-              >
-                <View style={styles.promptBox}>
-                  <Text style={styles.promptText}>{promptPreview}</Text>
-                </View>
-              </TouchableOpacity>
-              {/* Open ChatGPT App Button */}
-              <TouchableOpacity
-                style={styles.openChatGPTButton}
-                onPress={openChatGPT}
-                activeOpacity={0.85}
-              >
-                <Ionicons
-                  name="open-outline"
-                  size={20}
-                  color={"#fff"}
-                  style={{ marginRight: 8 }}
-                />
-                <Text style={styles.openChatGPTButtonText}>
-                  Open ChatGPT App
-                </Text>
-              </TouchableOpacity>
 
               {/* Step 2: Paste summary */}
-              <View style={[styles.stepRow, { marginTop: 32 }]}>
-                <View style={styles.stepBadge}>
-                  <Text style={styles.stepBadgeText}>Step 2</Text>
+              <View
+                ref={step2Ref}
+                style={[styles.stepContainer, styles.stepContainerSpaced]}
+              >
+                <View style={styles.stepHeader}>
+                  <View style={styles.stepBadge}>
+                    <Text style={styles.stepBadgeText}>Step 2</Text>
+                  </View>
+                  <View style={styles.stepTitleContainer}>
+                    <Text style={styles.stepLabel}>Paste AI Summary</Text>
+                    <Ionicons
+                      name="create-outline"
+                      size={20}
+                      color="#000000"
+                      style={styles.stepIconRight}
+                    />
+                  </View>
                 </View>
-                <Ionicons
-                  name="create-outline"
-                  size={24}
-                  color={OnboardingColors.icon.primary}
-                  style={styles.stepIcon}
-                />
-                <Text style={styles.stepLabel}>Paste your AI Summary here</Text>
-              </View>
-              <View style={styles.inputBox}>
-                <TextInput
-                  style={styles.textInput}
-                  multiline
-                  placeholder="Paste the summary ChatGPT created about you"
-                  placeholderTextColor={OnboardingColors.text.tertiary}
-                  value={gptResponse}
-                  onChangeText={setGptResponse}
-                  textAlignVertical="top"
-                  maxLength={2000}
-                  returnKeyType="done"
-                  onSubmitEditing={dismissKeyboard}
-                  blurOnSubmit={true}
-                  onFocus={handleTextInputFocus}
-                />
-              </View>
-              {showError && (
-                <View style={styles.errorContainer}>
-                  <Ionicons
-                    name="warning-outline"
-                    size={16}
-                    color="#FF6B6B"
-                    style={styles.errorIcon}
+
+                <View style={styles.inputBox}>
+                  <TextInput
+                    style={styles.textInput}
+                    multiline
+                    placeholder="Paste the summary ChatGPT created about you..."
+                    placeholderTextColor={OnboardingColors.text.tertiary}
+                    value={gptResponse}
+                    onChangeText={setGptResponse}
+                    textAlignVertical="top"
+                    maxLength={2000}
+                    returnKeyType="done"
+                    onSubmitEditing={dismissKeyboard}
+                    blurOnSubmit={true}
+                    onFocus={handleTextInputFocus}
                   />
-                  <Text style={styles.errorText}>
-                    Please paste the AI summary before finishing setup
-                  </Text>
                 </View>
-              )}
+
+                {showError && (
+                  <View style={styles.errorContainer}>
+                    <Ionicons
+                      name="warning-outline"
+                      size={16}
+                      color="#FF6B6B"
+                      style={styles.errorIcon}
+                    />
+                    <Text style={styles.errorText}>
+                      Please paste the AI summary before continuing
+                    </Text>
+                  </View>
+                )}
+              </View>
             </ScrollView>
 
             {/* Bottom Button */}
-            <BlurView intensity={20} style={styles.finishButton}>
+            <View style={styles.finishButtonContainer}>
               <TouchableOpacity
-                style={styles.finishButtonInner}
+                style={styles.finishButton}
                 onPress={handleFinish}
                 activeOpacity={0.85}
               >
-                <Text style={styles.finishButtonText}>Finish setup</Text>
+                <Text style={styles.finishButtonText}>Continue</Text>
+                <Ionicons
+                  name="arrow-forward"
+                  size={20}
+                  color="#000000"
+                  style={{ marginLeft: 8 }}
+                />
               </TouchableOpacity>
-            </BlurView>
+            </View>
           </View>
         </KeyboardAvoidingView>
       </LinearGradient>
@@ -246,18 +270,20 @@ export default function GPTScreen() {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1 },
-  gradient: { flex: 1 },
+  container: {
+    flex: 1,
+  },
+  gradient: {
+    flex: 1,
+  },
   content: {
     flex: 1,
     paddingHorizontal: 24,
-    paddingBottom: 32,
-    justifyContent: "flex-start",
+    paddingBottom: 120,
   },
   headerContainer: {
     marginBottom: 32,
     alignItems: "flex-start",
-    marginTop: 10,
   },
   title: {
     fontSize: 32,
@@ -266,48 +292,59 @@ const styles = StyleSheet.create({
     textAlign: "left",
     fontFamily: "Fraunces",
     marginBottom: 8,
-    marginTop: 10,
+    lineHeight: 38,
   },
   subtitle: {
-    fontSize: 16,
+    fontSize: 15,
     color: OnboardingColors.text.secondary,
     textAlign: "left",
-    fontFamily: "Fraunces",
+    fontFamily: "Montserrat",
     fontWeight: "400",
-    marginBottom: 0,
     maxWidth: "90%",
     lineHeight: 22,
   },
-  scrollView: { flex: 1 },
-  stepRow: {
+  scrollView: {
+    flex: 1,
+  },
+  stepContainer: {
+    marginBottom: 28,
+  },
+  stepContainerSpaced: {
+    marginTop: 16,
+  },
+  stepHeader: {
     flexDirection: "row",
     alignItems: "center",
-    marginBottom: 10,
-    marginTop: 20,
+    marginBottom: 12,
   },
   stepBadge: {
-    backgroundColor: OnboardingColors.icon.button,
-    paddingHorizontal: 12,
-    paddingVertical: 6,
-    borderRadius: 16,
+    backgroundColor: OnboardingColors.background.input,
+    paddingHorizontal: 10,
+    paddingVertical: 4,
+    borderRadius: 12,
     marginRight: 12,
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 3,
-    elevation: 2,
     borderWidth: 1,
-    borderColor: "rgba(255, 255, 255, 0.15)",
+    borderColor: OnboardingColors.border.input,
   },
   stepBadgeText: {
-    fontSize: 12,
-    fontWeight: "700",
-    color: "#fff",
-    fontFamily: "Fraunces",
+    fontSize: 11,
+    fontWeight: "600",
+    color: OnboardingColors.text.primary,
+    fontFamily: "Montserrat",
     textTransform: "uppercase",
     letterSpacing: 0.5,
   },
-  stepIcon: { marginRight: 10 },
+  stepTitleContainer: {
+    flexDirection: "row",
+    alignItems: "center",
+    flex: 1,
+  },
+  stepIcon: {
+    marginRight: 8,
+  },
+  stepIconRight: {
+    marginLeft: 8,
+  },
   stepLabel: {
     fontSize: 16,
     color: OnboardingColors.text.primary,
@@ -316,15 +353,15 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   iconButton: {
-    padding: 6,
-    borderRadius: 8,
+    padding: 8,
+    borderRadius: 12,
     backgroundColor: OnboardingColors.background.input,
     borderWidth: 1,
     borderColor: OnboardingColors.border.input,
   },
   promptBox: {
     backgroundColor: OnboardingColors.background.input,
-    borderRadius: 14,
+    borderRadius: 16,
     padding: 16,
     marginBottom: 12,
     borderWidth: 1,
@@ -332,70 +369,71 @@ const styles = StyleSheet.create({
   },
   promptText: {
     fontSize: 14,
-    color: OnboardingColors.text.primary,
-    fontFamily: "Fraunces",
+    color: OnboardingColors.text.secondary,
+    fontFamily: "Montserrat",
     fontStyle: "italic",
-    fontWeight: "light",
-    letterSpacing: 0.6,
+    fontWeight: "400",
+    lineHeight: 20,
   },
   openChatGPTButton: {
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "center",
-    width: "100%",
     backgroundColor: OnboardingColors.background.input,
     borderRadius: 16,
-    paddingVertical: 14,
-    marginBottom: 8,
+    paddingVertical: 12,
     borderWidth: 1,
     borderColor: OnboardingColors.border.input,
   },
   openChatGPTButtonText: {
-    fontSize: 16,
-    color: "#fff",
-    fontFamily: "Fraunces",
-    fontWeight: "500",
+    fontSize: 15,
+    color: OnboardingColors.text.primary,
+    fontFamily: "Montserrat",
+    fontWeight: "600",
   },
   inputBox: {
     backgroundColor: OnboardingColors.background.input,
-    borderRadius: 14,
+    borderRadius: 16,
     borderWidth: 1,
     borderColor: OnboardingColors.border.input,
-    marginTop: 10,
-    marginBottom: 8,
     minHeight: 120,
-    maxHeight: 180,
-    padding: 8,
+    maxHeight: 200,
+    padding: 16,
   },
   textInput: {
     fontSize: 15,
     color: OnboardingColors.text.primary,
-    fontFamily: "Fraunces",
-    minHeight: 100,
-    maxHeight: 160,
-    padding: 8,
+    fontFamily: "Montserrat",
+    minHeight: 88,
+    maxHeight: 168,
+    textAlignVertical: "top",
+  },
+  finishButtonContainer: {
+    position: "absolute",
+    left: 24,
+    right: 24,
+    bottom: Math.max(32, 32),
+    alignItems: "center",
   },
   finishButton: {
-    width: "100%",
-    borderRadius: 18,
-    marginTop: 18,
-    overflow: "hidden",
-    borderWidth: 1,
-    borderColor: "rgba(255, 255, 255, 0.2)",
-    shadowColor: OnboardingColors.shadow.primary,
-    shadowOffset: OnboardingColors.shadow.offset,
-    shadowOpacity: OnboardingColors.shadow.opacity.light,
-    shadowRadius: OnboardingColors.shadow.radius.small,
-    elevation: OnboardingColors.shadow.elevation.light,
-  },
-  finishButtonInner: {
-    width: "100%",
-    paddingVertical: 16,
+    flexDirection: "row",
+    backgroundColor: OnboardingColors.background.input,
+    borderRadius: 20,
+    height: 56,
+    width: Math.min(width - 32, 340),
     alignItems: "center",
-    backgroundColor: "rgba(255, 255, 255, 0.15)",
+    justifyContent: "center",
+    shadowColor: OnboardingColors.shadow.primary,
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.2,
+    shadowRadius: 12,
+    elevation: 6,
+    paddingHorizontal: 24,
+    borderWidth: 1,
+    borderColor: OnboardingColors.border.input,
   },
   finishButtonText: {
-    color: "#fff",
+    color: OnboardingColors.text.primary,
     fontSize: 18,
     fontFamily: "Fraunces",
     fontWeight: "600",
@@ -405,7 +443,7 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     backgroundColor: "rgba(255, 107, 107, 0.1)",
-    borderRadius: 8,
+    borderRadius: 12,
     padding: 12,
     marginTop: 8,
     borderWidth: 1,
@@ -415,10 +453,11 @@ const styles = StyleSheet.create({
     marginRight: 8,
   },
   errorText: {
-    fontSize: 14,
-    color: "#FF6B6B",
-    fontFamily: "Fraunces",
+    fontSize: 13,
+    color: "red",
+    fontFamily: "Montserrat",
     fontWeight: "500",
     flex: 1,
+    lineHeight: 18,
   },
 });

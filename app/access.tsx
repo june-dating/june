@@ -16,6 +16,7 @@ import {
   View,
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
+import { OnboardingColors } from "./colors/index";
 
 const { width, height } = Dimensions.get("window");
 
@@ -23,23 +24,43 @@ export default function AccessScreen() {
   const insets = useSafeAreaInsets();
   const [isLoading, setIsLoading] = useState(false);
   const [accessCode, setAccessCode] = useState("");
-  const [fontsLoaded] = useFonts({
+
+  // Non-blocking font loading with error handling
+  const [fontsLoaded, fontError] = useFonts({
     Fraunces: require("../assets/fonts/Fraunces-VariableFont_SOFT,WONK,opsz,wght.ttf"),
   });
-  if (!fontsLoaded) return null;
+
+  // Don't block rendering if fonts fail to load
+  const shouldUseFraunces = fontsLoaded && !fontError;
 
   const handleGetAccess = () => {
-    router.push("/juneconvo");
+    try {
+      router.push("/juneconvo");
+    } catch (error) {
+      console.error("Navigation error:", error);
+      // Fallback navigation
+      setTimeout(() => {
+        try {
+          router.replace("/juneconvo");
+        } catch (fallbackError) {
+          console.error("Fallback navigation error:", fallbackError);
+        }
+      }, 100);
+    }
   };
 
   return (
     <View style={styles.container}>
-      <StatusBar barStyle="light-content" />
+      <StatusBar barStyle={OnboardingColors.statusBar} />
       <LinearGradient
-        colors={["#000000", "#1a0a1a", "#2d0a2d"]}
+        colors={[
+          OnboardingColors.gradient.primary,
+          OnboardingColors.gradient.secondary,
+          OnboardingColors.gradient.tertiary,
+        ]}
         style={styles.gradient}
         start={{ x: 0, y: 0 }}
-        end={{ x: 1, y: 1 }}
+        end={{ x: 1, y: 1.3 }}
       >
         <KeyboardAvoidingView
           style={{ flex: 1 }}
@@ -52,27 +73,38 @@ export default function AccessScreen() {
                 style={styles.juneLogoImage}
                 resizeMode="contain"
               />
-              <Text style={styles.juneText}>June</Text>
-            </View>
-            <Text style={styles.slogan}>
-              1000 dates. No effort.{"\n"}{" "}
               <Text
-                style={{
-                  textDecorationLine: "line-through",
-                  textDecorationStyle: "solid",
-                  textDecorationColor: "#fff",
-                }}
+                style={[
+                  styles.juneText,
+                  !shouldUseFraunces && styles.fallbackFont,
+                ]}
               >
-                {" "}
-                No Swiping.
+                June
               </Text>
+            </View>
+            <Text
+              style={[
+                styles.slogan,
+                { textDecorationLine: "line-through", marginBottom: 8 },
+                !shouldUseFraunces && styles.fallbackFont,
+              ]}
+            >
+              No Swiping. No Effort.
+            </Text>
+            <Text
+              style={[styles.slogan, !shouldUseFraunces && styles.fallbackFont]}
+            >
+              Just a date that matters.
             </Text>
             <View style={styles.inputContainer}>
               <View style={styles.inputWrapper}>
                 <TextInput
-                  style={styles.input}
+                  style={[
+                    styles.input,
+                    !shouldUseFraunces && styles.fallbackFont,
+                  ]}
                   placeholder="Enter access code"
-                  placeholderTextColor="#e5e5e5"
+                  placeholderTextColor={OnboardingColors.text.tertiary}
                   value={accessCode}
                   onChangeText={setAccessCode}
                   editable={!isLoading}
@@ -91,20 +123,31 @@ export default function AccessScreen() {
               >
                 <LinearGradient
                   colors={
-                    isLoading ? ["#8B5FBF", "#A67CC5"] : ["#FFF", "#F0EFFF"]
+                    isLoading || !accessCode
+                      ? ["#1A1A1A", "#2A2A2A"]
+                      : OnboardingColors.background.buttonEnabled
+                  }
+                  start={{ x: 0, y: 0 }}
+                  end={
+                    isLoading || !accessCode ? { x: 1, y: 0 } : { x: 1, y: 1 }
                   }
                   style={styles.buttonGradient}
                 >
                   <Text
                     style={[
                       styles.buttonText,
-                      isLoading && styles.buttonTextLoading,
+                      (isLoading || !accessCode) && styles.buttonTextLoading,
+                      !shouldUseFraunces && styles.fallbackFont,
                     ]}
                   >
                     {isLoading ? "Setting up..." : "Get Access"}
                   </Text>
-                  {!isLoading && (
-                    <Ionicons name="arrow-forward" size={20} color="#5E2CA5" />
+                  {!isLoading && accessCode && (
+                    <Ionicons
+                      name="arrow-forward"
+                      size={20}
+                      color={OnboardingColors.icon.button}
+                    />
                   )}
                 </LinearGradient>
               </TouchableOpacity>
@@ -128,7 +171,7 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "center",
     paddingHorizontal: 24,
-    paddingBottom: 12,
+    paddingBottom: 70,
   },
   imageContainer: {
     width: "100%",
@@ -145,16 +188,17 @@ const styles = StyleSheet.create({
   juneText: {
     fontSize: 72,
     fontFamily: "MAK-bold",
-    color: "#FFFFFF",
+    color: OnboardingColors.text.primary,
     letterSpacing: 3,
-    textShadowColor: "rgba(0, 0, 0, 0.5)",
-    textShadowOffset: { width: 0, height: 4 },
-    textShadowRadius: 12,
+    textShadowColor: OnboardingColors.shadow.primary,
+    textShadowOffset: { width: 0, height: 2 },
+    textShadowRadius: 4,
     marginBottom: 32,
+    height: 100,
   },
   slogan: {
     fontSize: 20,
-    color: "#FFF",
+    color: OnboardingColors.text.primary,
     fontFamily: "Fraunces",
     fontWeight: "600",
     textAlign: "center",
@@ -168,30 +212,29 @@ const styles = StyleSheet.create({
     alignItems: "center",
   },
   inputWrapper: {
-    backgroundColor: "rgba(255, 255, 255, 0.15)",
+    backgroundColor: OnboardingColors.background.input,
     borderRadius: 20,
     borderWidth: 2,
-    borderColor: "rgba(255,255,255,0.2)",
+    borderColor: OnboardingColors.border.input,
     flexDirection: "row",
     alignItems: "center",
     paddingHorizontal: 24,
     paddingVertical: 20,
     minHeight: 60,
-    shadowColor: "#fff",
-    shadowOffset: { width: 0, height: 8 },
-    shadowOpacity: 0.12,
-    shadowRadius: 18,
-    elevation: 8,
+    shadowColor: OnboardingColors.shadow.primary,
+    shadowOffset: OnboardingColors.shadow.offset,
+    shadowOpacity: OnboardingColors.shadow.opacity.light,
+    shadowRadius: OnboardingColors.shadow.radius.medium,
+    elevation: OnboardingColors.shadow.elevation.light,
     maxWidth: "90%",
     width: "100%",
   },
   input: {
     flex: 1,
     fontSize: 18,
-    color: "#FFF",
-    fontWeight: "300",
-    fontFamily: "Fraunces",
-    letterSpacing: 0.5,
+    color: OnboardingColors.text.primary,
+    fontFamily: "Montserrat",
+    // letterSpacing: 0.5,
     backgroundColor: "transparent",
     borderWidth: 0,
     paddingVertical: 0,
@@ -203,17 +246,14 @@ const styles = StyleSheet.create({
     marginTop: 4,
   },
   button: {
-    borderRadius: 16,
+    borderRadius: 20,
     overflow: "hidden",
     width: "100%",
-    shadowColor: "#000",
-    shadowOffset: {
-      width: 0,
-      height: 4,
-    },
-    shadowOpacity: 0.2,
-    shadowRadius: 8,
-    elevation: 8,
+    shadowColor: OnboardingColors.shadow.primary,
+    shadowOffset: OnboardingColors.shadow.offset,
+    shadowOpacity: OnboardingColors.shadow.opacity.medium,
+    shadowRadius: OnboardingColors.shadow.radius.medium,
+    elevation: OnboardingColors.shadow.elevation.medium,
   },
   buttonGradient: {
     flexDirection: "row",
@@ -225,10 +265,14 @@ const styles = StyleSheet.create({
   buttonText: {
     fontSize: 18,
     fontWeight: "700",
-    color: "#5E2CA5",
+    color: OnboardingColors.text.button,
     marginRight: 8,
+    fontFamily: "Fraunces",
   },
   buttonTextLoading: {
-    color: "#8B5FBF",
+    opacity: 0.5,
+  },
+  fallbackFont: {
+    fontFamily: Platform.OS === "ios" ? "System" : "Roboto",
   },
 });

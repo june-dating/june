@@ -10,13 +10,15 @@ export default function TabsLayout() {
       icon: "person-outline" as const,
       iconFocused: "person" as const,
       component: ProfileScreen,
+      iconType: "ionicons" as const,
     },
     {
       name: "date",
-      title: "Date",
-      icon: "calendar-outline" as const,
-      iconFocused: "calendar" as const,
+      title: "Dates",
+      icon: "clover" as const,
+      iconFocused: "clover" as const,
       component: DateScreen,
+      iconType: "fontawesome6" as const,
     },
   ];
 

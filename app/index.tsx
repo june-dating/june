@@ -63,7 +63,7 @@ export default function OnboardingScreen() {
     <View style={styles.container}>
       <StatusBar barStyle="light-content" />
       <LinearGradient
-        colors={["#000000", "#1a0a1a", "#2d0a2d"]}
+        colors={["#eee2d2", "#eee2d2"]}
         style={styles.gradient}
         start={{ x: 0, y: 0 }}
         end={{ x: 1, y: 1 }}
@@ -117,18 +117,26 @@ export default function OnboardingScreen() {
             >
               <LinearGradient
                 colors={[
-                  "rgba(255, 255, 255, 0.45)", // Top highlight
-                  "rgba(173, 216, 230, 0.18)", // Soft blue
-                  "rgba(255, 255, 255, 0.10)", // Center
-                  "rgba(255, 182, 193, 0.18)", // Soft pink
-                  "rgba(255, 255, 255, 0.08)", // Bottom
+                  "rgba(60, 60, 60, 0.95)", // Cool dark gray top
+                  "rgba(40, 40, 40, 0.9)", // Slightly darker
+                  "rgba(30, 30, 30, 0.85)", // Medium dark
+                  "rgba(20, 20, 20, 0.8)", // Darker
+                  "rgba(10, 10, 10, 0.75)", // Darkest but not pure black
                 ]}
                 style={styles.liquidButtonGradient}
-                start={{ x: 0.1, y: 0 }}
-                end={{ x: 0.9, y: 1 }}
+                start={{ x: 0, y: 0 }}
+                end={{ x: 1, y: 1 }}
               >
                 <Text style={styles.liquidButtonText}>Get a Date</Text>
               </LinearGradient>
+            </TouchableOpacity>
+
+            <TouchableOpacity
+              style={styles.loginTextContainer}
+              onPress={() => router.push("/(tabs)/profile-screen")}
+              activeOpacity={0.7}
+            >
+              <Text style={styles.loginText}>Already a user?</Text>
             </TouchableOpacity>
           </Animated.View>
         </View>
@@ -158,31 +166,13 @@ const styles = StyleSheet.create({
   juneText: {
     fontSize: 72, // Increased from 48
     fontFamily: "MAK-bold",
-    color: "#FFFFFF",
+    color: "#000000",
     letterSpacing: 3,
-    textShadowColor: "rgba(0, 0, 0, 0.5)",
-    textShadowOffset: { width: 0, height: 4 },
-    textShadowRadius: 12, // Slightly more glow
+    // textShadowColor: "rgba(0, 0, 0, 0.5)",
+    // textShadowOffset: { width: 0, height: 4 },
+    // textShadowRadius: 12, // Slightly more glow
     marginBottom: 0,
-  },
-  welcomeText: {
-    fontSize: 52,
-    fontFamily: "MAK-bold",
-    color: "#FFFFFF",
-    letterSpacing: 3,
-    textShadowColor: "rgba(0, 0, 0, 0.5)",
-    textShadowOffset: { width: 0, height: 4 },
-    textShadowRadius: 8,
-    marginBottom: 4,
-  },
-  toText: {
-    fontSize: 26,
-    fontFamily: "MAK-bold",
-    color: "rgba(255, 255, 255, 0.8)",
-    letterSpacing: 1.5,
-    textShadowColor: "rgba(0, 0, 0, 0.3)",
-    textShadowOffset: { width: 0, height: 2 },
-    textShadowRadius: 4,
+    height: 100,
   },
   logoContainer: {
     width: 260, // Increased from 200
@@ -203,39 +193,45 @@ const styles = StyleSheet.create({
     marginBottom: 32,
   },
   liquidButton: {
-    width: 300, // Increased from 260
-    height: 76, // Increased from 68
-    borderRadius: 38, // Increased for more pill shape
+    width: 300,
+    height: 76,
+    borderRadius: 38,
     overflow: "hidden",
-    backgroundColor: "rgba(255,255,255,0.12)", // Slightly more visible
-    borderWidth: 2.5, // Thicker border
-    borderColor: "rgba(255,255,255,0.35)", // More pronounced border
-    shadowColor: "#fff",
+    backgroundColor: "rgba(40, 40, 40, 0.9)",
+    borderWidth: 1,
+    borderColor: "rgba(60, 60, 60, 0.3)",
+    shadowColor: "rgba(0, 0, 0, 0.5)",
     shadowOffset: { width: 0, height: 12 },
-    shadowOpacity: 0.22,
-    shadowRadius: 36,
-    elevation: 32,
-    // iOS glass effect
-    backdropFilter: "blur(18px)",
+    shadowOpacity: 0.4,
+    shadowRadius: 30,
+    elevation: 25,
   },
   liquidButtonGradient: {
     flex: 1,
     alignItems: "center",
     justifyContent: "center",
     borderRadius: 38,
-    borderWidth: 1.5,
-    borderColor: "rgba(255,255,255,0.22)",
-    backgroundColor: "rgba(255,255,255,0.22)",
-    // Enhanced gradient for more glassy look
+    borderWidth: 0.5,
+    borderColor: "rgba(80, 80, 80, 0.2)",
+    backgroundColor: "rgba(40, 40, 40, 0.85)",
   },
   liquidButtonText: {
     fontSize: 24,
     fontFamily: Platform.OS === "ios" ? "Fraunces" : "sans-serif-medium",
-    color: "#fff",
+    color: "#eee2d2",
     letterSpacing: 1.2,
-    textShadowColor: "rgba(0,0,0,0.18)",
-    textShadowOffset: { width: 0, height: 2 },
-    textShadowRadius: 6,
-    opacity: 0.96,
+    textShadowColor: "rgba(0, 0, 0, 0.3)",
+    textShadowOffset: { width: 0, height: 1 },
+    textShadowRadius: 3,
+    opacity: 1,
+  },
+  loginTextContainer: {
+    marginTop: 20,
+  },
+  loginText: {
+    fontSize: 18,
+    fontFamily: "sans-serif-medium",
+    color: "#000000",
+    textDecorationLine: "underline",
   },
 });

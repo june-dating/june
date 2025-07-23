@@ -9,13 +9,14 @@ export default function DateScreen() {
   const insets = useSafeAreaInsets();
   const [fontsLoaded] = useFonts({
     Fraunces: require("../../assets/fonts/Fraunces-VariableFont_SOFT,WONK,opsz,wght.ttf"),
+    Montserrat: require("../../assets/fonts/Montserrat-VariableFont_wght.ttf"),
   });
 
   if (!fontsLoaded) return null;
 
   return (
     <View style={styles.container}>
-      <StatusBar barStyle="light-content" />
+      <StatusBar barStyle={OnboardingColors.statusBar} />
       <LinearGradient
         colors={[
           OnboardingColors.gradient.primary,
@@ -23,8 +24,8 @@ export default function DateScreen() {
           OnboardingColors.gradient.tertiary,
         ]}
         style={styles.gradient}
-        start={{ x: 0, y: 0 }}
-        end={{ x: 1, y: 1 }}
+        start={{ x: 1, y: 1 }}
+        end={{ x: 0, y: 0 }}
       >
         <View style={[styles.content, { paddingTop: insets.top + 40 }]}>
           <Animated.View
@@ -44,10 +45,13 @@ export default function DateScreen() {
           >
             <LinearGradient
               colors={[
-                "rgba(255, 255, 255, 0.15)",
-                "rgba(255, 255, 255, 0.08)",
+                "rgba(255, 255, 255, 0.9)",
+                "rgba(255, 255, 255, 0.7)",
+                "rgba(255, 255, 255, 0.5)",
               ]}
               style={styles.card}
+              start={{ x: 0, y: 0 }}
+              end={{ x: 1, y: 1 }}
             >
               <Text style={styles.cardTitle}>Coming Soon</Text>
               <Text style={styles.cardText}>
@@ -87,11 +91,11 @@ const styles = StyleSheet.create({
   },
   subtitle: {
     fontSize: 16,
-    fontFamily: "Fraunces",
+    fontFamily: "Montserrat",
     color: OnboardingColors.text.secondary,
     textAlign: "center",
     lineHeight: 24,
-    letterSpacing: 0.7,
+    letterSpacing: 0.3,
   },
   cardContainer: {
     flex: 1,
@@ -102,26 +106,26 @@ const styles = StyleSheet.create({
     padding: 32,
     borderRadius: 24,
     borderWidth: 1,
-    borderColor: "rgba(255, 255, 255, 0.2)",
+    borderColor: "rgba(0, 0, 0, 0.1)",
     alignItems: "center",
-    shadowColor: "#C6B2FF",
-    shadowOffset: { width: 0, height: 8 },
-    shadowOpacity: 0.3,
-    shadowRadius: 16,
-    elevation: 10,
+    shadowColor: OnboardingColors.shadow.primary,
+    shadowOffset: OnboardingColors.shadow.offset,
+    shadowOpacity: OnboardingColors.shadow.opacity.medium,
+    shadowRadius: OnboardingColors.shadow.radius.medium,
+    elevation: OnboardingColors.shadow.elevation.medium,
   },
   cardTitle: {
     fontSize: 24,
     fontFamily: "Fraunces",
-    color: "#FFFFFF",
+    color: OnboardingColors.text.primary,
     fontWeight: "600",
     marginBottom: 16,
     textAlign: "center",
   },
   cardText: {
     fontSize: 16,
-    fontFamily: "Fraunces",
-    color: "rgba(255, 255, 255, 0.8)",
+    fontFamily: "Montserrat",
+    color: OnboardingColors.text.secondary,
     textAlign: "center",
     lineHeight: 24,
   },

@@ -141,10 +141,7 @@ function PhotoCarousel({
             style={[
               styles.paginationDot,
               {
-                backgroundColor:
-                  Math.floor(currentIndex / 3) === index
-                    ? OnboardingColors.background.input
-                    : OnboardingColors.background.input,
+                opacity: Math.floor(currentIndex / 3) === index ? 1 : 0.4,
               },
             ]}
           />
@@ -172,7 +169,7 @@ function SelectPhotosButton({
           <Ionicons
             name="add"
             size={20}
-            color={OnboardingColors.icon.button}
+            color={OnboardingColors.icon.checkmark}
             style={{ marginRight: 10 }}
           />
           <Text style={styles.selectButtonText}>Add Photos</Text>
@@ -206,16 +203,12 @@ function CompletionButton({
             !isComplete && styles.completionButtonTextDisabled,
           ]}
         >
-          Next
+          Continue
         </Text>
         <Ionicons
           name="arrow-forward"
           size={22}
-          color={
-            isComplete
-              ? OnboardingColors.icon.button
-              : OnboardingColors.icon.buttonDisabled
-          }
+          color="#00000"
           style={{ marginLeft: 8 }}
         />
       </TouchableOpacity>
@@ -230,6 +223,7 @@ export default function PhotoUploadScreen() {
   const [isLoading, setIsLoading] = useState(false);
   const [fontsLoaded] = useFonts({
     Fraunces: require("../assets/fonts/Fraunces-VariableFont_SOFT,WONK,opsz,wght.ttf"),
+    Montserrat: require("../assets/fonts/Montserrat-VariableFont_wght.ttf"),
   });
   if (!fontsLoaded) return null;
 
@@ -290,20 +284,24 @@ export default function PhotoUploadScreen() {
         start={{ x: 1, y: 1.3 }}
         end={{ x: 0, y: 0 }}
       >
-        <View style={[styles.content, { paddingTop: insets.top + 20 }]}>
-          {/* F-pattern main content */}
-          {/* Title and subtitle - top left */}
+        <View style={[styles.content, { paddingTop: insets.top + 60 }]}>
+          {/* Header Section - positioned like juneconvo */}
           <View style={styles.headerFPattern}>
             <Text style={styles.titleFPattern}>Show your world</Text>
             <Text style={styles.subtitleFPattern}>
-              Add at least 5 pictures (optional)
+              Add up to 10 photos to showcase your personality.
+            </Text>
+            <Text style={styles.requirementText}>
+              At least 5 photos required
             </Text>
           </View>
-          {/* Photo Grid - left aligned, more vertical space */}
+
+          {/* Photo Grid Section - reduced spacing */}
           <View style={styles.photoSectionFPattern}>
             <PhotoCarousel photos={photos} onRemovePhoto={removePhoto} />
           </View>
-          {/* Add Photos Button - left aligned */}
+
+          {/* Add Photos Button - closer to carousel */}
           {photos.length < 10 && (
             <View style={styles.addButtonFPattern}>
               <SelectPhotosButton
@@ -313,18 +311,18 @@ export default function PhotoUploadScreen() {
             </View>
           )}
         </View>
-        {/* Completion Button - bottom right */}
+
+        {/* Next Button - bottom */}
         <View
           style={[
             styles.bottomButtonContainer,
             {
-              bottom: insets.bottom + 10,
-              alignItems: "flex-end",
-              paddingRight: 24,
+              bottom: Math.max(insets.bottom + 16, 32),
+              alignItems: "center",
+              paddingHorizontal: 24,
             },
           ]}
         >
-          {/* F-pattern end */}
           <CompletionButton isComplete={isComplete} onPress={handleComplete} />
         </View>
       </LinearGradient>
@@ -338,8 +336,214 @@ const styles = StyleSheet.create({
   },
   gradient: {
     flex: 1,
-    paddingTop: 20,
   },
+  content: {
+    paddingHorizontal: 24,
+    flex: 1,
+    paddingBottom: 120,
+  },
+
+  // F-pattern header - more compact
+  headerFPattern: {
+    marginBottom: 28,
+    alignItems: "flex-start",
+  },
+  titleFPattern: {
+    fontSize: 32,
+    fontWeight: "600",
+    color: OnboardingColors.text.primary,
+    marginBottom: 8,
+    textAlign: "left",
+    lineHeight: 38,
+    fontFamily: "Fraunces",
+  },
+  subtitleFPattern: {
+    fontSize: 15,
+    color: OnboardingColors.text.secondary,
+    textAlign: "left",
+    lineHeight: 22,
+    maxWidth: "90%",
+    fontFamily: "Montserrat",
+    fontWeight: "400",
+  },
+  requirementText: {
+    fontSize: 13,
+    color: OnboardingColors.text.tertiary,
+    textAlign: "left",
+    marginTop: 4,
+    fontFamily: "Montserrat",
+    fontWeight: "500",
+  },
+
+  // Photo section - reduced spacing
+  photoSectionFPattern: {
+    marginTop: 8,
+    marginBottom: 16,
+  },
+
+  // Carousel container - more compact
+  carouselContainer: {
+    height: Math.min(AVAILABLE_HEIGHT * 0.42, 240),
+    marginBottom: 8,
+  },
+  carouselContent: {
+    paddingHorizontal: 8,
+  },
+  carouselItem: {
+    borderRadius: 20,
+    overflow: "hidden",
+    marginRight: 14,
+    backgroundColor: OnboardingColors.background.input,
+    borderWidth: 1.5,
+    borderColor: OnboardingColors.border.input,
+    shadowColor: OnboardingColors.shadow.primary,
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 2,
+  },
+  photoContainer: {
+    flex: 1,
+    position: "relative",
+  },
+  photo: {
+    width: "100%",
+    height: "100%",
+  },
+  photoOverlay: {
+    position: "absolute",
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    justifyContent: "flex-end",
+    alignItems: "flex-end",
+    padding: 16,
+  },
+  removeButton: {
+    width: 32,
+    height: 32,
+    borderRadius: 16,
+    backgroundColor: "rgba(0, 0, 0, 0.8)",
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  emptySlot: {
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
+    borderWidth: 2,
+    borderColor: OnboardingColors.border.input,
+    borderStyle: "dashed",
+    backgroundColor: "rgba(255, 255, 255, 0.02)",
+  },
+  emptySlotContent: {
+    alignItems: "center",
+  },
+  emptySlotText: {
+    fontSize: 12,
+    color: OnboardingColors.text.tertiary,
+    fontFamily: "Montserrat",
+    fontWeight: "500",
+    marginTop: 4,
+  },
+
+  // Add button section - closer to carousel
+  addButtonFPattern: {
+    alignItems: "flex-start",
+    marginTop: 4,
+  },
+  selectButtonContainer: {
+    alignItems: "center",
+    marginBottom: 8,
+  },
+  selectButton: {
+    width: Math.min(width - 48, 280),
+    height: 48,
+    borderRadius: 24,
+    shadowColor: OnboardingColors.shadow.primary,
+    shadowOffset: { width: 0, height: 3 },
+    shadowOpacity: 0.15,
+    shadowRadius: 8,
+    elevation: 4,
+  },
+  selectButtonGradient: {
+    flex: 1,
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    borderRadius: 24,
+    borderWidth: 1,
+    borderColor: OnboardingColors.border.input,
+    backgroundColor: OnboardingColors.background.input,
+  },
+  selectButtonText: {
+    fontSize: 16,
+    fontWeight: "600",
+    color: OnboardingColors.text.primary,
+    fontFamily: "Montserrat",
+  },
+
+  // Pagination dots - more compact
+  paginationContainer: {
+    flexDirection: "row",
+    justifyContent: "center",
+    marginTop: 4,
+  },
+  paginationDot: {
+    width: 6,
+    height: 6,
+    borderRadius: 3,
+    marginHorizontal: 3,
+    backgroundColor: "#000000",
+  },
+
+  // Bottom button container
+  bottomButtonContainer: {
+    position: "absolute",
+    left: 0,
+    right: 0,
+    bottom: 0,
+    zIndex: 10,
+    alignItems: "center",
+  },
+  completionButtonContainer: {
+    alignItems: "center",
+  },
+
+  // Next button - more elegant
+  doneButtonPhotoUpload: {
+    flexDirection: "row",
+    backgroundColor: OnboardingColors.background.input,
+    borderRadius: 20,
+    height: 56,
+    width: Math.min(width - 32, 340),
+    alignItems: "center",
+    justifyContent: "center",
+    shadowColor: OnboardingColors.shadow.primary,
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.2,
+    shadowRadius: 12,
+    elevation: 6,
+    paddingHorizontal: 24,
+    borderWidth: 1,
+    borderColor: OnboardingColors.border.input,
+  },
+  doneButtonTextPhotoUpload: {
+    fontSize: 18,
+    color: OnboardingColors.text.primary,
+    fontFamily: "Fraunces",
+    fontWeight: "600",
+    letterSpacing: 0.5,
+  },
+  completionButtonDisabled: {
+    opacity: 0.6,
+  },
+  completionButtonTextDisabled: {
+    color: OnboardingColors.text.buttonDisabled,
+  },
+
+  // Remove unused styles and keep these legacy ones for compatibility
   mainContainer: {
     flex: 1,
     justifyContent: "flex-start",
@@ -367,32 +571,28 @@ const styles = StyleSheet.create({
     zIndex: 10,
     alignItems: "center",
     justifyContent: "center",
-    height: 48, // reduced from 64
-    marginTop: 8, // reduced from 16
-  },
-  content: {
-    paddingHorizontal: 16, // reduced from 24
-    flex: 1,
+    height: 48,
+    marginTop: 8,
   },
   headerContainer: {
     alignItems: "center",
-    marginBottom: 8, // fixed, less whitespace
+    marginBottom: 8,
   },
   title: {
-    fontSize: 32, // reduced from 36
+    fontSize: 32,
     fontWeight: "600",
     color: OnboardingColors.text.primary,
     textAlign: "center",
-    marginBottom: 10, // reduced from 18
+    marginBottom: 10,
     fontFamily: "Fraunces",
   },
   subtitle: {
-    fontSize: 15, // slightly smaller
+    fontSize: 15,
     color: OnboardingColors.text.secondary,
     textAlign: "center",
-    fontFamily: "Fraunces",
+    fontFamily: "Montserrat",
     fontWeight: "300",
-    lineHeight: 20, // slightly smaller
+    lineHeight: 20,
   },
   progressSection: {
     marginBottom: Math.max(AVAILABLE_HEIGHT * 0.025, 16),
@@ -444,99 +644,8 @@ const styles = StyleSheet.create({
     textAlign: "center",
   },
   photoSection: {
-    marginTop: 16, // reduced from 32
-    marginBottom: 10, // reduced
-  },
-  carouselContainer: {
-    height: Math.min(AVAILABLE_HEIGHT * 0.5, 320) + 20, // much taller
-    marginBottom: 0, // reduced to minimize gap with dots
-  },
-  carouselContent: {
-    paddingHorizontal: 10, // reduced
-  },
-  carouselItem: {
-    borderRadius: 24,
-    overflow: "hidden",
-    marginRight: 18,
-    backgroundColor: OnboardingColors.background.input,
-    borderWidth: 2,
-    borderColor: OnboardingColors.border.input,
-  },
-  photoContainer: {
-    flex: 1,
-    position: "relative",
-  },
-  photo: {
-    width: "100%",
-    height: "100%",
-  },
-  photoOverlay: {
-    position: "absolute",
-    top: 0,
-    left: 0,
-    right: 0,
-    bottom: 0,
-    justifyContent: "flex-end",
-    alignItems: "flex-end",
-    padding: 24, // much larger overlay padding
-  },
-  removeButton: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
-    backgroundColor: "rgba(0, 0, 0, 0.7)",
-    justifyContent: "center",
-    alignItems: "center",
-  },
-  emptySlot: {
-    flex: 1,
-    justifyContent: "center",
-    alignItems: "center",
-    borderWidth: 2.5,
-    borderColor: OnboardingColors.border.input,
-    borderStyle: "dashed",
-    backgroundColor: OnboardingColors.background.input,
-  },
-  emptySlotContent: {
-    alignItems: "center",
-  },
-  emptySlotText: {
-    fontSize: 14,
-    color: OnboardingColors.text.tertiary,
-    fontFamily: "Fraunces",
-    fontWeight: "600",
-    marginTop: 6,
-  },
-  selectButtonContainer: {
-    alignItems: "center",
-    marginBottom: 10, // reduced
-  },
-  selectButton: {
-    width: width - 64, // slightly narrower
-    height: Math.max(AVAILABLE_HEIGHT * 0.055, 40), // reduced
-    borderRadius: 16, // reduced
-    shadowColor: OnboardingColors.shadow.primary,
-    shadowOffset: OnboardingColors.shadow.offset,
-    shadowOpacity: OnboardingColors.shadow.opacity.light,
-    shadowRadius: OnboardingColors.shadow.radius.small,
-    elevation: OnboardingColors.shadow.elevation.light,
-  },
-  selectButtonGradient: {
-    flex: 1,
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "center",
-    borderRadius: 16,
-    borderWidth: 1,
-    borderColor: OnboardingColors.border.input,
-    position: "relative",
-    overflow: "hidden",
-  },
-  selectButtonText: {
-    fontSize: 15, // slightly smaller
-    fontWeight: "700",
-    color: OnboardingColors.text.tertiary,
-    fontFamily: "Fraunces",
+    marginTop: 16,
+    marginBottom: 10,
   },
   smallProgressText: {
     fontSize: 13,
@@ -575,17 +684,6 @@ const styles = StyleSheet.create({
     marginLeft: 10,
     flex: 1,
   },
-  bottomButtonContainer: {
-    position: "absolute",
-    left: 0,
-    right: 0,
-    zIndex: 10,
-    alignItems: "center",
-  },
-  completionButtonContainer: {
-    alignItems: "center",
-    marginBottom: 6, // reduced
-  },
   completionButton: {
     width: width - 64,
     height: Math.max(AVAILABLE_HEIGHT * 0.055, 40),
@@ -596,9 +694,6 @@ const styles = StyleSheet.create({
     shadowOpacity: OnboardingColors.shadow.opacity.light,
     shadowRadius: OnboardingColors.shadow.radius.small,
     elevation: OnboardingColors.shadow.elevation.light,
-  },
-  completionButtonDisabled: {
-    opacity: OnboardingColors.opacity.buttonDisabled,
   },
   completionButtonGradient: {
     flex: 1,
@@ -614,10 +709,6 @@ const styles = StyleSheet.create({
     color: OnboardingColors.text.button,
     fontFamily: "Fraunces",
   },
-  completionButtonTextDisabled: {
-    color: OnboardingColors.text.buttonDisabled,
-    fontFamily: "Fraunces",
-  },
   shimmerOverlay: {
     position: "absolute",
     top: 0,
@@ -630,19 +721,6 @@ const styles = StyleSheet.create({
     flex: 1,
     width: 100,
   },
-  paginationContainer: {
-    flexDirection: "row",
-    justifyContent: "center",
-    marginTop: 0, // minimal gap
-  },
-  paginationDot: {
-    width: 8,
-    height: 8,
-    borderRadius: 4,
-    marginHorizontal: 4,
-    backgroundColor: OnboardingColors.background.input,
-  },
-  // Enhanced Select Photos button
   selectButtonContainerEnhanced: {
     alignItems: "center",
     marginBottom: 10,
@@ -683,12 +761,10 @@ const styles = StyleSheet.create({
     fontFamily: "Fraunces",
     letterSpacing: 0.5,
   },
-  // Move photo grid lower
   photoSectionMoved: {
-    marginTop: 80, // increased from 40
+    marginTop: 80,
     marginBottom: 0,
   },
-  // Move subtitle below photo grid
   headerContainerMoved: {
     alignItems: "center",
     marginBottom: 12,
@@ -702,7 +778,6 @@ const styles = StyleSheet.create({
     fontWeight: "300",
     lineHeight: 20,
   },
-  // Add new styles for onboarding-style completion button
   completionButtonGradientOnboarding: {
     flexDirection: "row",
     alignItems: "center",
@@ -717,59 +792,6 @@ const styles = StyleSheet.create({
     color: OnboardingColors.text.button,
     marginRight: 8,
     fontFamily: "Fraunces",
-    letterSpacing: 0.7,
-  },
-  // F-pattern styles
-  headerFPattern: {
-    marginBottom: 32,
-    alignItems: "flex-start",
-  },
-  titleFPattern: {
-    fontSize: 36,
-    fontWeight: "600",
-    color: OnboardingColors.text.primary,
-    marginBottom: 12,
-    textAlign: "left",
-    lineHeight: 44,
-    fontFamily: "Fraunces",
-  },
-  subtitleFPattern: {
-    fontSize: 16,
-    color: OnboardingColors.text.secondary,
-    textAlign: "left",
-    lineHeight: 24,
-    maxWidth: "85%",
-    fontFamily: "Fraunces",
-    fontWeight: "300",
-  },
-  photoSectionFPattern: {
-    marginTop: 40, // moved down by 40px
-  },
-  addButtonFPattern: {
-    alignItems: "flex-start",
-    marginTop: 10,
-  },
-  doneButtonPhotoUpload: {
-    flexDirection: "row",
-    backgroundColor: OnboardingColors.background.input,
-    borderRadius: 16, // match completionButton
-    height: Math.max(AVAILABLE_HEIGHT * 0.09, 60), // increased height
-    width: width - 64, // keep current width
-    alignItems: "center",
-    justifyContent: "center",
-    shadowColor: OnboardingColors.shadow.primary,
-    shadowOffset: OnboardingColors.shadow.offset,
-    shadowOpacity: OnboardingColors.shadow.opacity.medium,
-    shadowRadius: OnboardingColors.shadow.radius.medium,
-    elevation: OnboardingColors.shadow.elevation.medium,
-    paddingHorizontal: 32, // match doneButton
-    marginTop: 0, // no extra margin
-  },
-  doneButtonTextPhotoUpload: {
-    fontSize: 20,
-    color: OnboardingColors.text.primary,
-    fontFamily: "Fraunces",
-    fontWeight: "400",
     letterSpacing: 0.7,
   },
 });

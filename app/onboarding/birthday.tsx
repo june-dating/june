@@ -25,15 +25,24 @@ import Animated, {
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { OnboardingColors } from "../colors/index";
 import ProgressBar from "../components/ProgressBar";
+import { useOnboarding } from "../contexts/OnboardingContext";
 
 const { width, height } = Dimensions.get("window");
 
 export default function BirthdayScreen() {
   const insets = useSafeAreaInsets();
-  const [birthday, setBirthday] = useState<Date | null>(null);
+  const { onboardingData, updateOnboardingData } = useOnboarding();
+
+  // Initialize birthday from context if it exists
+  const initialBirthday = onboardingData.birth_date
+    ? new Date(onboardingData.birth_date)
+    : null;
+  const [birthday, setBirthday] = useState<Date | null>(initialBirthday);
   const [showPicker, setShowPicker] = useState(false);
-  const [tempDate, setTempDate] = useState(new Date(2005, 5, 8)); // June 8, 2005
-  const [isValid, setIsValid] = useState(false);
+  const [tempDate, setTempDate] = useState(
+    initialBirthday || new Date(2000, 5, 8) // Default to June 8, 2000 (appropriate for 18+ users)
+  );
+  const [isValid, setIsValid] = useState(!!initialBirthday);
 
   const buttonScale = useSharedValue(1);
   const inputOpacity = useSharedValue(0);
@@ -52,6 +61,28 @@ export default function BirthdayScreen() {
     }
   };
 
+  const validateAge = (date: Date): boolean => {
+    const today = new Date();
+    const age = today.getFullYear() - date.getFullYear();
+    const monthDiff = today.getMonth() - date.getMonth();
+    const dayDiff = today.getDate() - date.getDate();
+
+    // Calculate exact age
+    let exactAge = age;
+    if (monthDiff < 0 || (monthDiff === 0 && dayDiff < 0)) {
+      exactAge--;
+    }
+
+    // Must be between 18 and 99 years old
+    return exactAge >= 18 && exactAge <= 99;
+  };
+
+  const saveBirthdayToContext = (date: Date) => {
+    // Save in ISO format (YYYY-MM-DD) for database compatibility
+    const isoDateString = date.toISOString().split("T")[0];
+    updateOnboardingData({ birth_date: isoDateString });
+  };
+
   const handleDone = () => {
     setBirthday(tempDate);
     setShowPicker(false);
@@ -63,20 +94,14 @@ export default function BirthdayScreen() {
     pickerBlur.value = withTiming(0, { duration: 300 });
     glassOpacity.value = withTiming(0, { duration: 300 });
 
-    // Validate age (must be at least 13 years old)
-    const today = new Date();
-    const age = today.getFullYear() - tempDate.getFullYear();
-    const monthDiff = today.getMonth() - tempDate.getMonth();
-    const dayDiff = today.getDate() - tempDate.getDate();
-
-    const isValidAge =
-      age > 13 ||
-      (age === 13 && (monthDiff > 0 || (monthDiff === 0 && dayDiff >= 0)));
-
+    // Validate age (must be between 18 and 99 years old)
+    const isValidAge = validateAge(tempDate);
     setIsValid(isValidAge);
 
     if (isValidAge) {
       checkIconOpacity.value = withSpring(1);
+      // Save to context
+      saveBirthdayToContext(tempDate);
       // Navigate to next screen after a short delay for smooth UX
       setTimeout(() => {
         router.push("/onboarding/gender");
@@ -88,7 +113,7 @@ export default function BirthdayScreen() {
 
   const handleCancel = () => {
     setShowPicker(false);
-    setTempDate(birthday || new Date(2005, 5, 8));
+    setTempDate(birthday || new Date(2000, 5, 8)); // Default to June 8, 2000 (appropriate for 18+ users)
 
     // Animate picker out with liquid glass effect
     pickerHeight.value = withSpring(0, { damping: 20, stiffness: 200 });
@@ -121,6 +146,8 @@ export default function BirthdayScreen() {
 
   const handleNext = () => {
     if (isValid && birthday) {
+      // Ensure data is saved before navigation
+      saveBirthdayToContext(birthday);
       router.push("/onboarding/gender");
     }
   };
@@ -170,6 +197,11 @@ export default function BirthdayScreen() {
     titleOpacity.value = withTiming(1, { duration: 600 });
     subtitleOpacity.value = withTiming(1, { duration: 800 });
     inputOpacity.value = withTiming(1, { duration: 1000 });
+
+    // Check if we already have a valid birthday from context
+    if (initialBirthday && validateAge(initialBirthday)) {
+      checkIconOpacity.value = withTiming(1);
+    }
   }, []);
 
   return (
@@ -202,7 +234,7 @@ export default function BirthdayScreen() {
               <Text style={styles.title}>When's your birthday?</Text>
               <Animated.View style={animatedSubtitleStyle}>
                 <Text style={styles.subtitle}>
-                  We'll help you find people your age
+                  You must be between 18 and 99 years old
                 </Text>
               </Animated.View>
             </Animated.View>
@@ -296,8 +328,20 @@ export default function BirthdayScreen() {
                           mode="date"
                           display="spinner"
                           onChange={handleDateChange}
-                          maximumDate={new Date()}
-                          minimumDate={new Date(1900, 0, 1)}
+                          maximumDate={
+                            new Date(
+                              new Date().getFullYear() - 18,
+                              new Date().getMonth(),
+                              new Date().getDate()
+                            )
+                          }
+                          minimumDate={
+                            new Date(
+                              new Date().getFullYear() - 99,
+                              new Date().getMonth(),
+                              new Date().getDate()
+                            )
+                          }
                           textColor={OnboardingColors.text.primary}
                           style={styles.datePicker}
                         />
@@ -392,8 +436,8 @@ const styles = StyleSheet.create({
     textAlign: "left",
     lineHeight: 24,
     maxWidth: "85%",
-    fontFamily: "Fraunces",
-    fontWeight: "300",
+    fontFamily: "Montserrat",
+    // fontWeight: "300",
   },
   pickerSection: {
     flex: 1,
@@ -433,7 +477,7 @@ const styles = StyleSheet.create({
     fontSize: 18,
     color: OnboardingColors.text.primary,
     fontWeight: "300",
-    fontFamily: "Fraunces",
+    // fontFamily: "Fraunces",
   },
   checkIcon: {
     marginLeft: 12,

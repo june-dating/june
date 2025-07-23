@@ -20,6 +20,7 @@ import Animated, {
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { OnboardingColors } from "../colors/index";
 import ProgressBar from "../components/ProgressBar";
+import { useOnboarding } from "../contexts/OnboardingContext";
 
 const { width, height } = Dimensions.get("window");
 
@@ -27,8 +28,11 @@ type LookingForOption = "male" | "female" | "other";
 
 export default function LookingForScreen() {
   const insets = useSafeAreaInsets();
+  const { onboardingData, updateOnboardingData } = useOnboarding();
+
+  // Initialize from context if available
   const [selectedOption, setSelectedOption] = useState<LookingForOption | null>(
-    null
+    onboardingData.looking_for || null
   );
 
   const buttonScale = useSharedValue(1);
@@ -36,16 +40,23 @@ export default function LookingForScreen() {
   const titleOpacity = useSharedValue(0);
   const subtitleOpacity = useSharedValue(0);
 
+  const saveLookingForToContext = (option: LookingForOption) => {
+    updateOnboardingData({ looking_for: option });
+  };
+
   const handleOptionSelect = (option: LookingForOption) => {
     setSelectedOption(option);
-    // Auto-navigate when option is selected
+    // Save to context and auto-navigate when option is selected
+    saveLookingForToContext(option);
     router.push("/onboarding/socials");
   };
 
   const isValid = selectedOption !== null;
 
   const handleNext = () => {
-    if (isValid) {
+    if (isValid && selectedOption) {
+      // Ensure data is saved before navigation
+      saveLookingForToContext(selectedOption);
       router.push("/onboarding/socials");
     }
   };
