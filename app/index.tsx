@@ -81,7 +81,7 @@ export default function OnboardingScreen() {
             ]}
           >
             <Image
-              source={require("../assets/images/onboarding/junelogo.png")}
+              source={require("../assets/images/pink.png")}
               style={styles.logo}
               resizeMode="contain"
             />

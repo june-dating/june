@@ -69,7 +69,7 @@ export default function AccessScreen() {
           <View style={[styles.content, { paddingTop: insets.top + 30 }]}>
             <View style={styles.imageContainer}>
               <Image
-                source={require("../assets/images/onboarding/junelogo.png")}
+                source={require("../assets/images/pink.png")}
                 style={styles.juneLogoImage}
                 resizeMode="contain"
               />

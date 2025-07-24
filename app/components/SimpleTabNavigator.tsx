@@ -171,7 +171,7 @@ const styles = StyleSheet.create({
     backgroundColor: "rgba(26, 26, 26, 0.3)",
     borderRadius: 50,
     paddingHorizontal: 15,
-    paddingVertical: 12,
+    paddingVertical: 8,
     maxWidth: width * 0.85,
     minWidth: width * 0.7,
     borderWidth: 1,
@@ -183,13 +183,13 @@ const styles = StyleSheet.create({
     height: "100%",
     backgroundColor: "rgba(255, 255, 255, 0.15)",
     borderRadius: 50,
-    top: 12,
+    top: 8,
     left: 16,
   },
   tabButton: {
     alignItems: "center",
     justifyContent: "center",
-    paddingVertical: 6,
+    paddingVertical: 4,
     borderRadius: 52,
   },
   tabContent: {
@@ -198,10 +198,10 @@ const styles = StyleSheet.create({
     zIndex: 1,
   },
   tabIcon: {
-    marginBottom: 2,
+    marginBottom: 1,
   },
   tabLabel: {
-    fontSize: 10,
+    fontSize: 9,
     textAlign: "center",
   },
 });

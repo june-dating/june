@@ -443,7 +443,7 @@ export default function PhoneScreen() {
                       placeholder={
                         selectedCountry.callingCode === "+1"
                           ? "(555) 123-4567"
-                          : "Enter phone number"
+                          : "Your number"
                       }
                       placeholderTextColor={OnboardingColors.text.tertiary}
                       autoFocus

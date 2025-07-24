@@ -38,7 +38,8 @@ export default function RootLayout() {
           <Stack.Screen name="photo-upload" />
           <Stack.Screen name="dashboard" />
           <Stack.Screen name="chat-screen" />
-          <Stack.Screen name="gpt" />
+          <Stack.Screen name="gpt" options={{ headerShown: false }} />
+          <Stack.Screen name="edit-profile" />
           {/* Tabs Navigator */}
           <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
           {/* Profile Screens */}

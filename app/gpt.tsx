@@ -2,15 +2,17 @@
 
 import { LinearGradient } from "expo-linear-gradient";
 import { router } from "expo-router";
+import { Clipboard } from "react-native";
 
 import { Ionicons } from "@expo/vector-icons";
 import { useFonts } from "expo-font";
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import {
   Alert,
   Dimensions,
   Keyboard,
   KeyboardAvoidingView,
+  KeyboardEvent,
   Linking,
   Platform,
   ScrollView,
@@ -26,8 +28,25 @@ import { OnboardingColors } from "./colors";
 
 const { width, height } = Dimensions.get("window");
 
-const GPT_PROMPT =
-  "Tell me everything about me as if you were being a matchmaker for a dating profile only include the information that is relevant to a dating profile. Dont' make a resume but everything for a dating profile and add some like tinder, raya does.";
+const GPT_PROMPT = `Act like a high-end, emotionally intelligent matchmaker who's writing my dating profile for apps like Tinder, Hinge, or Raya. This isn't a resume, so skip career stuff unless it's part of my personality or vibe. I want you to break down everything that actually matters for dating — in clean, bold, bullet point format. That includes:
+
+My personality and vibe
+
+My lifestyle and habits
+
+What I care about / my values
+
+What kind of partner I naturally attract
+
+What it feels like to date me
+
+My humor, quirks, and how I carry myself
+
+Bonus points if there's something poetic, flirty, or bold in tone
+
+Keep it fresh, modern, and not cringe. Avoid clichés and anything that sounds robotic or generic. The goal is to make someone stop scrolling and think, "Who is this person and where have they been?"
+
+Make sure every bullet point actually says something. Cut the filler. Show, don't just tell.`;
 
 export default function GPTScreen() {
   const insets = useSafeAreaInsets();
@@ -35,17 +54,43 @@ export default function GPTScreen() {
   const [showFullPrompt, setShowFullPrompt] = useState(false);
   const [isCopied, setIsCopied] = useState(false);
   const [showError, setShowError] = useState(false);
+  const [keyboardHeight, setKeyboardHeight] = useState(0);
   const scrollViewRef = useRef<ScrollView>(null);
   const step2Ref = useRef<View>(null);
   const [fontsLoaded] = useFonts({
     Fraunces: require("../assets/fonts/Fraunces-VariableFont_SOFT,WONK,opsz,wght.ttf"),
     Montserrat: require("../assets/fonts/Montserrat-VariableFont_wght.ttf"),
   });
-  if (!fontsLoaded) return null;
 
-  const copyPrompt = () => {
-    setIsCopied(true);
-    setTimeout(() => setIsCopied(false), 2000);
+  useEffect(() => {
+    const keyboardWillShow = Keyboard.addListener(
+      Platform.OS === "ios" ? "keyboardWillShow" : "keyboardDidShow",
+      (event: KeyboardEvent) => {
+        setKeyboardHeight(event.endCoordinates.height);
+      }
+    );
+
+    const keyboardWillHide = Keyboard.addListener(
+      Platform.OS === "ios" ? "keyboardWillHide" : "keyboardDidHide",
+      () => {
+        setKeyboardHeight(0);
+      }
+    );
+
+    return () => {
+      keyboardWillShow.remove();
+      keyboardWillHide.remove();
+    };
+  }, []);
+
+  const copyPrompt = async () => {
+    try {
+      await Clipboard.setString(GPT_PROMPT);
+      setIsCopied(true);
+      setTimeout(() => setIsCopied(false), 2000);
+    } catch (error) {
+      Alert.alert("Error", "Failed to copy text to clipboard");
+    }
   };
 
   const openChatGPT = async () => {
@@ -84,26 +129,28 @@ export default function GPTScreen() {
     if (showError) {
       setShowError(false);
     }
-    // Scroll to show the entire Step 2 section when keyboard appears
+
+    // Delay to ensure layout is complete
     setTimeout(() => {
-      step2Ref.current?.measureLayout(
-        scrollViewRef.current as any,
-        (x, y) => {
+      step2Ref.current?.measureInWindow((x, y, width, height) => {
+        const inputPosition = y + height;
+        const screenHeight = Dimensions.get("window").height;
+        const keyboardSpace = keyboardHeight;
+
+        // If input would be hidden by keyboard, scroll to make it visible
+        if (inputPosition > screenHeight - keyboardSpace) {
+          const scrollAmount =
+            inputPosition - (screenHeight - keyboardSpace) + 130; // Extra 100px padding
           scrollViewRef.current?.scrollTo({
-            y: Math.max(0, y - 40), // Show Step 2 with some padding
-            animated: true,
-          });
-        },
-        () => {
-          // Fallback to fixed position if measure fails
-          scrollViewRef.current?.scrollTo({
-            y: 180,
+            y: scrollAmount,
             animated: true,
           });
         }
-      );
-    }, 150); // Longer delay to ensure keyboard animation starts
+      });
+    }, 100);
   };
+
+  if (!fontsLoaded) return null;
 
   // Truncate prompt for preview
   const PROMPT_PREVIEW_LENGTH = 80;
@@ -173,7 +220,18 @@ export default function GPTScreen() {
                   activeOpacity={0.7}
                 >
                   <View style={styles.promptBox}>
-                    <Text style={styles.promptText}>{promptPreview}</Text>
+                    <Text style={styles.promptText}>
+                      {GPT_PROMPT.slice(
+                        0,
+                        showFullPrompt ? undefined : PROMPT_PREVIEW_LENGTH
+                      )}
+                      {!showFullPrompt &&
+                        GPT_PROMPT.length > PROMPT_PREVIEW_LENGTH && (
+                          <Text style={styles.readMoreText}>
+                            {"\n... Read more"}
+                          </Text>
+                        )}
+                    </Text>
                   </View>
                 </TouchableOpacity>
 
@@ -374,6 +432,11 @@ const styles = StyleSheet.create({
     fontStyle: "italic",
     fontWeight: "400",
     lineHeight: 20,
+  },
+  readMoreText: {
+    color: "#000000",
+    fontStyle: "normal",
+    fontWeight: "700",
   },
   openChatGPTButton: {
     flexDirection: "row",

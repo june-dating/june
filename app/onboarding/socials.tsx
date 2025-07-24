@@ -318,7 +318,8 @@ export default function SocialsScreen() {
                     ["instagram", "twitter", "linkedin"] as SocialPlatform[]
                   ).map((platform) => {
                     const data = socialData[platform];
-                    const isSelected = data.isFocused || data.isValid;
+                    const isSelected =
+                      data.isFocused || data.username.length > 0;
                     const isTyping = data.isFocused;
 
                     return (
@@ -378,7 +379,8 @@ export default function SocialsScreen() {
                               }}
                               style={[
                                 styles.platformInput,
-                                isSelected && styles.platformInputSelected,
+                                (isSelected || data.username.length > 0) &&
+                                  styles.platformInputSelected,
                               ]}
                               value={data.username}
                               onChangeText={(text) =>
@@ -412,7 +414,7 @@ export default function SocialsScreen() {
                           )}
                         </View>
 
-                        {data.isValid && (
+                        {data.username.length > 0 && (
                           <View style={styles.validationIcon}>
                             <Ionicons
                               name="checkmark-circle"

@@ -279,6 +279,7 @@ const styles = StyleSheet.create({
     fontSize: 18,
     color: OnboardingColors.text.primary,
     fontFamily: "Fraunces",
-    letterSpacing: 0.7,
+    fontWeight: "600",
+    letterSpacing: 0.5,
   },
 });

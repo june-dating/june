@@ -1,15 +1,15 @@
 import { Ionicons } from "@expo/vector-icons";
+import { BlurView } from "expo-blur";
 import { useFonts } from "expo-font";
 import { LinearGradient } from "expo-linear-gradient";
 import { router } from "expo-router";
-import { useEffect, useState } from "react";
+import { useEffect } from "react";
 import {
   Dimensions,
   ScrollView,
   StatusBar,
   StyleSheet,
   Text,
-  TextInput,
   TouchableOpacity,
   View,
 } from "react-native";
@@ -28,43 +28,43 @@ import { OnboardingColors } from "../colors";
 const { width, height } = Dimensions.get("window");
 
 const defaultPoints = [
-  "Genuine and patient",
-  "Great at meaningful conversations",
-  "Creative and expressive",
-  "Emotionally intelligent",
+  "Someone who values honesty and authenticity",
+  "A good listener who enjoys deep conversations",
+  "Has their own passions and interests",
+  "Kind and supportive through life's ups and downs",
 ];
 
-// Floating hearts for romantic theme
-function FloatingHearts() {
-  const hearts = Array.from({ length: 10 }, (_, i) => ({
+// Enhanced floating particles component (consistent with other screens)
+function FloatingParticles() {
+  const particles = Array.from({ length: 8 }, (_, i) => ({
     id: i,
     x: Math.random() * width,
     y: Math.random() * height,
-    size: Math.random() * 8 + 4,
-    opacity: Math.random() * 0.5 + 0.2,
-    duration: Math.random() * 4000 + 3000,
+    size: Math.random() * 3 + 1.5,
+    opacity: Math.random() * 0.2 + 0.05,
+    duration: Math.random() * 5000 + 4000,
   }));
 
   return (
-    <View style={styles.heartContainer}>
-      {hearts.map((heart) => (
+    <View style={styles.particleContainer}>
+      {particles.map((particle) => (
         <Animated.View
-          key={heart.id}
+          key={particle.id}
           style={[
             {
               position: "absolute",
-              left: heart.x,
-              top: heart.y,
-              width: heart.size,
-              height: heart.size,
+              left: particle.x,
+              top: particle.y,
+              width: particle.size,
+              height: particle.size,
             },
           ]}
-          entering={FadeIn.delay(heart.id * 400).duration(2500)}
+          entering={FadeIn.delay(particle.id * 200).duration(1500)}
         >
-          <FloatingHeart
-            size={heart.size}
-            opacity={heart.opacity}
-            duration={heart.duration}
+          <FloatingParticle
+            size={particle.size}
+            opacity={particle.opacity}
+            duration={particle.duration}
           />
         </Animated.View>
       ))}
@@ -72,7 +72,7 @@ function FloatingHearts() {
   );
 }
 
-function FloatingHeart({
+function FloatingParticle({
   size,
   opacity,
   duration,
@@ -82,8 +82,7 @@ function FloatingHeart({
   duration: number;
 }) {
   const translateY = useSharedValue(0);
-  const scale = useSharedValue(0.8);
-  const rotate = useSharedValue(-5);
+  const scale = useSharedValue(1);
 
   useEffect(() => {
     translateY.value = withRepeat(
@@ -99,89 +98,58 @@ function FloatingHeart({
       -1,
       true
     );
-    rotate.value = withRepeat(
-      withTiming(5, {
-        duration: duration * 0.9,
-        easing: Easing.inOut(Easing.sin),
-      }),
-      -1,
-      true
-    );
   }, []);
 
   const animatedStyle = useAnimatedStyle(() => ({
-    transform: [
-      { translateY: translateY.value },
-      { scale: scale.value },
-      { rotate: `${rotate.value}deg` },
-    ],
+    transform: [{ translateY: translateY.value }, { scale: scale.value }],
     opacity: opacity,
   }));
 
   return (
-    <Animated.View style={[animatedStyle]}>
-      <Ionicons name="heart" size={size} color="rgba(255, 108, 140, 0.6)" />
+    <Animated.View style={[styles.particle, animatedStyle]}>
+      <View style={[styles.particleInner, { width: size, height: size }]} />
     </Animated.View>
   );
 }
 
-export default function JuneLookingFor() {
+// Header Component (consistent with other screens)
+function JuneHeader() {
   const insets = useSafeAreaInsets();
-  const [isEditMode, setIsEditMode] = useState(false);
-  const [editablePoints, setEditablePoints] = useState<string[]>(defaultPoints);
+
+  return (
+    <BlurView
+      intensity={20}
+      tint="light"
+      style={[styles.header, { paddingTop: insets.top + 20 }]}
+    >
+      <TouchableOpacity
+        style={styles.backButton}
+        onPress={() => router.back()}
+        activeOpacity={0.7}
+      >
+        <Ionicons name="arrow-back-sharp" size={24} color="#000" />
+      </TouchableOpacity>
+    </BlurView>
+  );
+}
+
+export default function JuneLookingFor() {
+  const points = defaultPoints;
 
   const [fontsLoaded] = useFonts({
     Fraunces: require("../../assets/fonts/Fraunces-VariableFont_SOFT,WONK,opsz,wght.ttf"),
     Montserrat: require("../../assets/fonts/Montserrat-VariableFont_wght.ttf"),
   });
 
-  const color = "#EF4444";
+  const color = "#f57f7d";
   const title = "June is looking for someone who is...";
   const icon = "heart";
-
-  useEffect(() => {
-    setEditablePoints(defaultPoints);
-  }, []);
-
-  const handleEdit = () => {
-    setIsEditMode(true);
-  };
-
-  const handleSave = () => {
-    const filteredPoints = editablePoints.filter(
-      (point) => point.trim() !== ""
-    );
-    setEditablePoints(filteredPoints);
-    setIsEditMode(false);
-    // In a real app, you'd send this to your backend here
-    console.log("Saving points:", filteredPoints);
-  };
-
-  const handleCancel = () => {
-    setEditablePoints(defaultPoints);
-    setIsEditMode(false);
-  };
-
-  const updatePoint = (index: number, newText: string) => {
-    const updatedPoints = [...editablePoints];
-    updatedPoints[index] = newText;
-    setEditablePoints(updatedPoints);
-  };
-
-  const addNewPoint = () => {
-    setEditablePoints([...editablePoints, ""]);
-  };
-
-  const removePoint = (index: number) => {
-    const updatedPoints = editablePoints.filter((_, i) => i !== index);
-    setEditablePoints(updatedPoints);
-  };
 
   if (!fontsLoaded) return null;
 
   return (
     <View style={styles.container}>
-      <StatusBar barStyle="light-content" />
+      <StatusBar barStyle="dark-content" />
       <LinearGradient
         colors={[
           OnboardingColors.gradient.primary,
@@ -192,62 +160,9 @@ export default function JuneLookingFor() {
         start={{ x: 1, y: 1 }}
         end={{ x: 0, y: 0 }}
       >
-        <FloatingHearts />
+        <FloatingParticles />
 
-        {/* Romantic glass overlay */}
-        <View style={styles.glassOverlay} />
-
-        <View style={[styles.header, { paddingTop: insets.top + 20 }]}>
-          <TouchableOpacity
-            style={styles.backButton}
-            onPress={() => router.back()}
-            activeOpacity={0.7}
-          >
-            <Ionicons
-              name="chevron-back"
-              size={24}
-              color="rgba(255, 255, 255, 0.9)"
-            />
-          </TouchableOpacity>
-
-          {!isEditMode ? (
-            <TouchableOpacity
-              style={styles.editButton}
-              onPress={handleEdit}
-              activeOpacity={0.7}
-            >
-              <Ionicons
-                name="create-outline"
-                size={16}
-                color="rgba(255, 255, 255, 0.9)"
-              />
-              <Text style={styles.editButtonText}>Edit</Text>
-            </TouchableOpacity>
-          ) : (
-            <View style={styles.editActions}>
-              <TouchableOpacity
-                style={styles.cancelButton}
-                onPress={handleCancel}
-                activeOpacity={0.7}
-              >
-                <Text style={styles.cancelButtonText}>Cancel</Text>
-              </TouchableOpacity>
-
-              <TouchableOpacity
-                style={styles.saveButton}
-                onPress={handleSave}
-                activeOpacity={0.7}
-              >
-                <Ionicons
-                  name="checkmark"
-                  size={20}
-                  color="rgba(255, 255, 255, 0.9)"
-                />
-                <Text style={styles.saveButtonText}>Save</Text>
-              </TouchableOpacity>
-            </View>
-          )}
-        </View>
+        <JuneHeader />
 
         <ScrollView
           style={styles.scrollView}
@@ -260,129 +175,72 @@ export default function JuneLookingFor() {
           >
             <View style={styles.iconWrapper}>
               <LinearGradient
-                colors={[`${color}60`, `${color}30`, "transparent"]}
+                colors={[`${color}25`, `${color}10`, "transparent"]}
                 style={styles.iconGradientBg}
               />
               <View
                 style={[
                   styles.iconContainer,
-                  { backgroundColor: `${color}25` },
+                  { backgroundColor: `${color}15` },
                 ]}
               >
-                <Ionicons name={icon} size={36} color={color} />
-                {/* Heartbeat effect */}
-                <Animated.View style={styles.heartbeatRing} />
+                <Ionicons name={icon} size={36} color={"#f53e3b"} />
               </View>
             </View>
             <Text style={styles.title}>{title}</Text>
-            <Text style={styles.subtitle}>Your ideal match qualities 💕</Text>
+            <Text style={styles.subtitle}>Your ideal match qualities</Text>
           </Animated.View>
 
-          <View style={styles.content}>
-            <View style={styles.lookingForHeader}>
-              <View style={styles.headerBadge}>
-                <Ionicons name="heart" size={16} color={color} />
-                <Text style={styles.headerBadgeText}>Looking For</Text>
-                <Ionicons name="heart" size={16} color={color} />
-              </View>
-            </View>
-
-            <View style={styles.pointsWrapper}>
-              {editablePoints.map((point: string, idx: number) => (
-                <Animated.View
-                  key={idx}
-                  style={styles.pointContainer}
-                  entering={FadeInUp.delay(idx * 150 + 600).duration(700)}
-                >
-                  <LinearGradient
-                    colors={[
-                      "rgba(255, 255, 255, 0.20)",
-                      "rgba(255, 255, 255, 0.12)",
-                    ]}
-                    style={styles.qualityCard}
-                    start={{ x: 0, y: 0 }}
-                    end={{ x: 1, y: 1 }}
-                  >
-                    <View style={styles.cardGlow} />
-                    <View style={styles.pointContent}>
-                      <View
-                        style={[
-                          styles.bulletContainer,
-                          { backgroundColor: color },
-                        ]}
-                      >
-                        <Ionicons name="diamond" size={16} color="#FFF" />
-                      </View>
-
-                      {!isEditMode ? (
-                        <Text style={styles.pointText}>{point}</Text>
-                      ) : (
-                        <View style={styles.editPointContainer}>
-                          <TextInput
-                            style={styles.editPointInput}
-                            value={point}
-                            onChangeText={(text) => updatePoint(idx, text)}
-                            placeholder="Enter quality..."
-                            placeholderTextColor="rgba(255, 255, 255, 0.4)"
-                            multiline={true}
-                            textAlignVertical="top"
-                          />
-                          <TouchableOpacity
-                            style={styles.removePointButton}
-                            onPress={() => removePoint(idx)}
-                            activeOpacity={0.7}
-                          >
-                            <Ionicons
-                              name="close-circle"
-                              size={22}
-                              color="#FF6B6B"
-                            />
-                          </TouchableOpacity>
-                        </View>
-                      )}
-                    </View>
-                  </LinearGradient>
-                </Animated.View>
-              ))}
-            </View>
-
-            {isEditMode && (
-              <Animated.View
-                style={styles.addPointContainer}
-                entering={FadeInUp.delay(700).duration(600)}
-              >
-                <TouchableOpacity
-                  style={[styles.addPointButton, { borderColor: color + "70" }]}
-                  onPress={addNewPoint}
-                  activeOpacity={0.8}
-                >
-                  <LinearGradient
-                    colors={[`${color}30`, `${color}20`]}
-                    style={styles.addPointGradient}
-                  >
-                    <Ionicons name="heart-outline" size={24} color={color} />
-                    <Text style={[styles.addPointText, { color: color }]}>
-                      Add Quality
-                    </Text>
-                  </LinearGradient>
-                </TouchableOpacity>
-              </Animated.View>
-            )}
-
-            <View style={styles.footer}>
+          <Animated.View
+            style={styles.content}
+            entering={FadeInUp.delay(300).duration(800)}
+          >
+            <BlurView intensity={20} tint="light" style={styles.glassContainer}>
               <LinearGradient
                 colors={[
-                  "rgba(255, 255, 255, 0.1)",
-                  "rgba(255, 255, 255, 0.05)",
+                  "rgba(239, 68, 68, 0.03)", // Very subtle red tint
+                  "rgba(220, 38, 38, 0.015)", // Barely visible red tint
+                  "rgba(239, 68, 68, 0.01)", // Almost invisible red
+                  "rgba(255, 255, 255, 0.08)",
                 ]}
-                style={styles.footerCard}
+                style={styles.liquidGlass}
+                start={{ x: 0, y: 0 }}
+                end={{ x: 1, y: 1 }}
               >
-                <Text style={styles.footerText}>
-                  "The heart wants what it wants" 💖
-                </Text>
+                <View style={styles.pointsWrapper}>
+                  {points.map((point: string, idx: number) => (
+                    <Animated.View
+                      key={idx}
+                      style={styles.pointContainer}
+                      entering={FadeInUp.delay(idx * 100 + 500).duration(600)}
+                    >
+                      <View style={styles.pointContent}>
+                        <View
+                          style={[
+                            styles.bulletContainer,
+                            { backgroundColor: color },
+                          ]}
+                        >
+                          <Text style={styles.bullet}>{idx + 1}</Text>
+                        </View>
+                        <Text style={styles.pointText}>{point}</Text>
+                      </View>
+                      {idx < points.length - 1 && (
+                        <View style={styles.separator} />
+                      )}
+                    </Animated.View>
+                  ))}
+                </View>
               </LinearGradient>
-            </View>
-          </View>
+            </BlurView>
+          </Animated.View>
+
+          <Animated.View
+            style={styles.footer}
+            entering={FadeInUp.delay(800).duration(600)}
+          >
+            <Text style={styles.footerText}>The heart wants what it wants</Text>
+          </Animated.View>
         </ScrollView>
       </LinearGradient>
     </View>
@@ -396,7 +254,7 @@ const styles = StyleSheet.create({
   gradient: {
     flex: 1,
   },
-  heartContainer: {
+  particleContainer: {
     position: "absolute",
     top: 0,
     left: 0,
@@ -404,96 +262,40 @@ const styles = StyleSheet.create({
     bottom: 0,
     zIndex: 0,
   },
-  glassOverlay: {
+  particle: {
+    position: "absolute",
+  },
+  particleInner: {
+    backgroundColor: "rgba(0, 0, 0, 0.1)",
+    borderRadius: 50,
+    shadowColor: "rgba(0, 0, 0, 0.2)",
+    shadowOffset: { width: 0, height: 0 },
+    shadowOpacity: 0.3,
+    shadowRadius: 3,
+  },
+  // Header Styles
+  header: {
     position: "absolute",
     top: 0,
-    left: 0,
-    right: 0,
-    bottom: 0,
-    backgroundColor: "rgba(239, 68, 68, 0.04)",
-    zIndex: 1,
-  },
-  header: {
+    width: "100%",
+    paddingHorizontal: 20,
+    paddingBottom: 12,
     flexDirection: "row",
-    justifyContent: "space-between",
+    justifyContent: "flex-start",
     alignItems: "center",
-    paddingHorizontal: 24,
-    paddingBottom: 20,
-    zIndex: 10,
+    zIndex: 100,
+    borderBottomColor: "rgba(251, 247, 247, 0.64)",
+    borderBottomWidth: 0.5,
   },
   backButton: {
-    width: 46,
-    height: 46,
-    borderRadius: 23,
-    backgroundColor: "rgba(255, 255, 255, 0.15)",
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    backgroundColor: "rgba(0, 0, 0, 0.1)",
     alignItems: "center",
     justifyContent: "center",
     borderWidth: 1,
-    borderColor: "rgba(255, 255, 255, 0.25)",
-    shadowColor: "rgba(0, 0, 0, 0.1)",
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.1,
-    shadowRadius: 8,
-  },
-  editButton: {
-    flexDirection: "row",
-    alignItems: "center",
-    paddingHorizontal: 18,
-    paddingVertical: 12,
-    borderRadius: 23,
-    backgroundColor: "rgba(255, 255, 255, 0.15)",
-    borderWidth: 1,
-    borderColor: "rgba(255, 255, 255, 0.25)",
-    shadowColor: "rgba(0, 0, 0, 0.1)",
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.1,
-    shadowRadius: 8,
-  },
-  editButtonText: {
-    color: "rgba(255, 255, 255, 0.9)",
-    fontSize: 14,
-    fontWeight: "600",
-    marginLeft: 6,
-    fontFamily: "Montserrat",
-  },
-  editActions: {
-    flexDirection: "row",
-    gap: 12,
-  },
-  saveButton: {
-    flexDirection: "row",
-    alignItems: "center",
-    paddingHorizontal: 18,
-    paddingVertical: 12,
-    borderRadius: 23,
-    backgroundColor: "rgba(76, 175, 80, 0.25)",
-    borderWidth: 1,
-    borderColor: "rgba(76, 175, 80, 0.4)",
-    shadowColor: "rgba(76, 175, 80, 0.3)",
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.2,
-    shadowRadius: 8,
-  },
-  saveButtonText: {
-    color: "rgba(255, 255, 255, 0.9)",
-    fontSize: 14,
-    fontWeight: "600",
-    marginLeft: 6,
-    fontFamily: "Montserrat",
-  },
-  cancelButton: {
-    paddingHorizontal: 18,
-    paddingVertical: 12,
-    borderRadius: 23,
-    backgroundColor: "rgba(255, 255, 255, 0.1)",
-    borderWidth: 1,
-    borderColor: "rgba(255, 255, 255, 0.2)",
-  },
-  cancelButtonText: {
-    color: "rgba(255, 255, 255, 0.8)",
-    fontSize: 14,
-    fontWeight: "600",
-    fontFamily: "Montserrat",
+    borderColor: "rgba(0, 0, 0, 0.1)",
   },
   scrollView: {
     flex: 1,
@@ -501,6 +303,7 @@ const styles = StyleSheet.create({
   },
   scrollContent: {
     paddingHorizontal: 24,
+    paddingTop: 140,
     paddingBottom: 40,
   },
   headerContent: {
@@ -513,11 +316,11 @@ const styles = StyleSheet.create({
   },
   iconGradientBg: {
     position: "absolute",
-    width: 120,
-    height: 120,
-    borderRadius: 60,
-    top: -20,
-    left: -20,
+    width: 100,
+    height: 100,
+    borderRadius: 50,
+    top: -10,
+    left: -10,
   },
   iconContainer: {
     width: 80,
@@ -525,189 +328,121 @@ const styles = StyleSheet.create({
     borderRadius: 40,
     alignItems: "center",
     justifyContent: "center",
-    borderWidth: 1.5,
-    borderColor: "rgba(255, 255, 255, 0.3)",
-    shadowColor: "rgba(239, 68, 68, 0.5)",
-    shadowOffset: { width: 0, height: 8 },
-    shadowOpacity: 0.3,
-    shadowRadius: 20,
-    position: "relative",
-  },
-  heartbeatRing: {
-    position: "absolute",
-    width: 95,
-    height: 95,
-    borderRadius: 47.5,
-    borderWidth: 2,
-    borderColor: "rgba(239, 68, 68, 0.3)",
-    opacity: 0.7,
+    borderWidth: 1,
+    borderColor: "rgba(0, 0, 0, 0.1)",
+    shadowColor: "rgba(0, 0, 0, 0.1)",
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.1,
+    shadowRadius: 12,
   },
   title: {
-    fontSize: 24,
+    fontSize: 30,
     textAlign: "center",
-    color: "rgba(255, 255, 255, 0.95)",
+    color: "#000",
     fontFamily: "Fraunces",
-    lineHeight: 32,
-    letterSpacing: 0.5,
+    lineHeight: 36,
     fontWeight: "600",
     marginBottom: 8,
-    textShadowColor: "rgba(0, 0, 0, 0.3)",
-    textShadowOffset: { width: 0, height: 2 },
-    textShadowRadius: 4,
   },
   subtitle: {
-    fontSize: 14,
+    fontSize: 16,
     textAlign: "center",
-    color: "rgba(255, 255, 255, 0.75)",
+    color: "rgba(0, 0, 0, 0.7)",
     fontFamily: "Montserrat",
     fontWeight: "400",
     letterSpacing: 0.3,
   },
   content: {
     flex: 1,
+    marginBottom: 32,
+    marginTop: 0,
   },
-  lookingForHeader: {
-    marginBottom: 24,
-    alignItems: "center",
+  glassContainer: {
+    borderRadius: 35,
+    overflow: "hidden",
+    borderWidth: 1.5,
+    borderColor: "rgba(239, 68, 68, 0.2)", // Much lighter red border
+    shadowColor: "rgba(239, 68, 68, 0.08)", // Very light red shadow
+    shadowOffset: { width: 0, height: 20 },
+    shadowOpacity: 0.4,
+    shadowRadius: 30,
+    elevation: 20,
+    backgroundColor: "rgba(239, 68, 68, 0.03)", // Very subtle red base
   },
-  headerBadge: {
-    flexDirection: "row",
-    alignItems: "center",
-    backgroundColor: "rgba(255, 255, 255, 0.15)",
-    paddingHorizontal: 20,
-    paddingVertical: 10,
-    borderRadius: 25,
-    borderWidth: 1,
-    borderColor: "rgba(239, 68, 68, 0.3)",
-    gap: 8,
-  },
-  headerBadgeText: {
-    fontSize: 16,
-    color: "rgba(255, 255, 255, 0.9)",
-    fontFamily: "Fraunces",
-    fontWeight: "600",
-    letterSpacing: 0.5,
+  liquidGlass: {
+    borderRadius: 32,
+    padding: 3,
   },
   pointsWrapper: {
-    gap: 18,
+    backgroundColor: "rgba(255, 255, 255, 0.12)",
+    borderRadius: 28,
+    padding: 24,
+    borderWidth: 1,
+    borderColor: "rgba(239, 68, 68, 0.15)", // Much lighter red inner border
+    shadowColor: "rgba(239, 68, 68, 0.15)",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.5,
+    shadowRadius: 8,
   },
   pointContainer: {
-    marginBottom: 4,
-  },
-  qualityCard: {
-    borderRadius: 22,
-    borderWidth: 1,
-    borderColor: "rgba(255, 255, 255, 0.3)",
-    shadowColor: "rgba(239, 68, 68, 0.2)",
-    shadowOffset: { width: 0, height: 10 },
-    shadowOpacity: 0.2,
-    shadowRadius: 20,
-    overflow: "hidden",
-    position: "relative",
-  },
-  cardGlow: {
-    position: "absolute",
-    top: 0,
-    left: 0,
-    right: 0,
-    height: 2,
-    backgroundColor: "rgba(239, 68, 68, 0.6)",
-    shadowColor: "rgba(239, 68, 68, 0.8)",
-    shadowOffset: { width: 0, height: 0 },
-    shadowOpacity: 1,
-    shadowRadius: 8,
+    marginVertical: 1,
   },
   pointContent: {
     flexDirection: "row",
-    alignItems: "flex-start",
-    padding: 22,
+    alignItems: "center",
+    paddingVertical: 10,
   },
   bulletContainer: {
-    width: 38,
-    height: 38,
-    borderRadius: 19,
+    width: 26,
+    height: 26,
+    borderRadius: 13,
     alignItems: "center",
     justifyContent: "center",
     marginRight: 18,
     flexShrink: 0,
-    shadowColor: "rgba(239, 68, 68, 0.5)",
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.4,
-    shadowRadius: 10,
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.2,
+    shadowRadius: 6,
+  },
+  bullet: {
+    fontSize: 12,
+    fontWeight: "700",
+    color: "#fff",
+    fontFamily: "Montserrat",
   },
   pointText: {
-    fontSize: 16,
-    color: "rgba(255, 255, 255, 0.9)",
-    lineHeight: 24,
-    fontWeight: "400",
+    fontSize: 18,
+    color: "rgba(0, 0, 0, 0.85)",
+    lineHeight: 26,
+    fontWeight: "500",
     flex: 1,
-    fontFamily: "Fraunces",
+    fontFamily: "Montserrat",
+    letterSpacing: 0,
+    textShadowColor: "rgba(239, 68, 68, 0.3)", // Much lighter red text shadow
+    textShadowOffset: { width: 0, height: 1 },
+    textShadowRadius: 3,
   },
-  editPointContainer: {
-    flex: 1,
-    flexDirection: "row",
-    alignItems: "flex-start",
-  },
-  editPointInput: {
-    flex: 1,
-    fontSize: 16,
-    color: "rgba(255, 255, 255, 0.9)",
-    backgroundColor: "rgba(255, 255, 255, 0.1)",
-    borderRadius: 12,
-    paddingHorizontal: 16,
-    paddingVertical: 12,
-    borderWidth: 1,
-    borderColor: "rgba(255, 255, 255, 0.2)",
-    minHeight: 48,
-    fontWeight: "400",
-    fontFamily: "Fraunces",
-  },
-  removePointButton: {
-    marginLeft: 12,
-    padding: 6,
-    marginTop: 6,
-  },
-  addPointContainer: {
-    marginTop: 28,
-    marginBottom: 20,
-  },
-  addPointButton: {
-    borderRadius: 22,
-    borderWidth: 2,
-    borderStyle: "dashed",
-    overflow: "hidden",
-  },
-  addPointGradient: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "center",
-    paddingVertical: 20,
-    paddingHorizontal: 26,
-  },
-  addPointText: {
-    fontSize: 16,
-    fontWeight: "600",
-    marginLeft: 12,
-    fontFamily: "Fraunces",
-    letterSpacing: 0.5,
+  separator: {
+    height: 1,
+    backgroundColor: "rgba(239, 68, 68, 0.12)", // Much lighter red separator
+    marginHorizontal: 48,
+    marginVertical: 4,
+    shadowColor: "rgba(239, 68, 68, 0.2)", // Lighter red shadow
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.3,
+    shadowRadius: 2,
   },
   footer: {
-    marginTop: 32,
     alignItems: "center",
-  },
-  footerCard: {
-    paddingHorizontal: 24,
-    paddingVertical: 16,
-    borderRadius: 20,
-    borderWidth: 1,
-    borderColor: "rgba(255, 255, 255, 0.2)",
+    marginTop: 24,
   },
   footerText: {
-    fontSize: 16,
-    color: "rgba(255, 255, 255, 0.8)",
-    fontFamily: "Fraunces",
+    fontSize: 14,
+    color: "rgba(0, 0, 0, 0.6)",
+    fontFamily: "Montserrat",
     fontStyle: "italic",
     textAlign: "center",
     letterSpacing: 0.3,
+    top: -20,
   },
 });

@@ -73,25 +73,25 @@ export default function CelebrateScreen() {
       });
     }, 800);
 
-    // Progress bar entrance (1500ms delay)
+    // Progress bar entrance (2500ms delay)
     setTimeout(() => {
       progressOpacity.value = withTiming(1, {
-        duration: 600,
+        duration: 800,
         easing: Easing.out(Easing.quad),
       });
 
-      // Progress bar fill animation (completes by 4000ms total)
+      // Progress bar fill animation (completes by 7000ms total)
       progressWidth.value = withTiming(
         1,
         {
-          duration: 1900,
+          duration: 3500,
           easing: Easing.bezier(0.25, 0.46, 0.45, 0.94),
         },
         (finished) => {
           if (finished) runOnJS(navigateToAccess)();
         }
       );
-    }, 1500);
+    }, 2500);
   }, []);
 
   // Animated styles
@@ -132,7 +132,7 @@ export default function CelebrateScreen() {
           <View style={styles.leftContainer}>
             <View style={styles.logoContainer}>
               <Image
-                source={require("../assets/images/onboarding/junelogo.png")}
+                source={require("../assets/images/pink.png")}
                 style={styles.logoImage}
                 resizeMode="contain"
               />

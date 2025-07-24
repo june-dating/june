@@ -1,15 +1,15 @@
 import { Ionicons, MaterialCommunityIcons } from "@expo/vector-icons";
+import { BlurView } from "expo-blur";
 import { useFonts } from "expo-font";
 import { LinearGradient } from "expo-linear-gradient";
 import { router } from "expo-router";
-import { useEffect, useState } from "react";
+import { useEffect } from "react";
 import {
   Dimensions,
   ScrollView,
   StatusBar,
   StyleSheet,
   Text,
-  TextInput,
   TouchableOpacity,
   View,
 } from "react-native";
@@ -31,18 +31,18 @@ const defaultPoints = [
   "Deep listener",
   "Thoughtful ambivert",
   "Believer in real talk over small talk",
-  "Poet at heart",
+  "Authentic soul seeker",
 ];
 
 // Enhanced floating particles component
 function FloatingParticles() {
-  const particles = Array.from({ length: 12 }, (_, i) => ({
+  const particles = Array.from({ length: 8 }, (_, i) => ({
     id: i,
     x: Math.random() * width,
     y: Math.random() * height,
-    size: Math.random() * 4 + 2,
-    opacity: Math.random() * 0.4 + 0.1,
-    duration: Math.random() * 4000 + 3000,
+    size: Math.random() * 3 + 1.5,
+    opacity: Math.random() * 0.2 + 0.05,
+    duration: Math.random() * 5000 + 4000,
   }));
 
   return (
@@ -86,13 +86,13 @@ function FloatingParticle({
 
   useEffect(() => {
     translateY.value = withRepeat(
-      withTiming(-20, { duration: duration, easing: Easing.inOut(Easing.sin) }),
+      withTiming(-15, { duration: duration, easing: Easing.inOut(Easing.sin) }),
       -1,
       true
     );
     scale.value = withRepeat(
-      withTiming(1.2, {
-        duration: duration * 0.7,
+      withTiming(1.1, {
+        duration: duration * 0.8,
         easing: Easing.inOut(Easing.sin),
       }),
       -1,
@@ -112,63 +112,45 @@ function FloatingParticle({
   );
 }
 
-export default function JuneThinks() {
+// Header Component
+function JuneHeader() {
   const insets = useSafeAreaInsets();
-  const [isEditMode, setIsEditMode] = useState(false);
-  const [editablePoints, setEditablePoints] = useState<string[]>(defaultPoints);
+
+  return (
+    <BlurView
+      intensity={20}
+      tint="light"
+      style={[styles.header, { paddingTop: insets.top + 12 }]}
+    >
+      <TouchableOpacity
+        style={styles.backButton}
+        onPress={() => router.back()}
+        activeOpacity={0.7}
+      >
+        <Ionicons name="arrow-back-sharp" size={24} color="#000" />
+      </TouchableOpacity>
+    </BlurView>
+  );
+}
+
+export default function JuneThinks() {
+  const points = defaultPoints;
 
   const [fontsLoaded] = useFonts({
     Fraunces: require("../../assets/fonts/Fraunces-VariableFont_SOFT,WONK,opsz,wght.ttf"),
     Montserrat: require("../../assets/fonts/Montserrat-VariableFont_wght.ttf"),
+    MAK: require("../../assets/fonts/MAK-bold.otf"),
   });
 
   const color = "#8B5CF6";
   const title = "June thinks you're a...";
   const icon = "brain";
 
-  useEffect(() => {
-    setEditablePoints(defaultPoints);
-  }, []);
-
-  const handleEdit = () => {
-    setIsEditMode(true);
-  };
-
-  const handleSave = () => {
-    const filteredPoints = editablePoints.filter(
-      (point) => point.trim() !== ""
-    );
-    setEditablePoints(filteredPoints);
-    setIsEditMode(false);
-    // In a real app, you'd send this to your backend here
-    console.log("Saving points:", filteredPoints);
-  };
-
-  const handleCancel = () => {
-    setEditablePoints(defaultPoints);
-    setIsEditMode(false);
-  };
-
-  const updatePoint = (index: number, newText: string) => {
-    const updatedPoints = [...editablePoints];
-    updatedPoints[index] = newText;
-    setEditablePoints(updatedPoints);
-  };
-
-  const addNewPoint = () => {
-    setEditablePoints([...editablePoints, ""]);
-  };
-
-  const removePoint = (index: number) => {
-    const updatedPoints = editablePoints.filter((_, i) => i !== index);
-    setEditablePoints(updatedPoints);
-  };
-
   if (!fontsLoaded) return null;
 
   return (
     <View style={styles.container}>
-      <StatusBar barStyle="light-content" />
+      <StatusBar barStyle="dark-content" />
       <LinearGradient
         colors={[
           OnboardingColors.gradient.primary,
@@ -181,60 +163,7 @@ export default function JuneThinks() {
       >
         <FloatingParticles />
 
-        {/* Glass overlay for enhanced depth */}
-        <View style={styles.glassOverlay} />
-
-        <View style={[styles.header, { paddingTop: insets.top + 20 }]}>
-          <TouchableOpacity
-            style={styles.backButton}
-            onPress={() => router.back()}
-            activeOpacity={0.7}
-          >
-            <Ionicons
-              name="chevron-back"
-              size={24}
-              color="rgba(255, 255, 255, 0.9)"
-            />
-          </TouchableOpacity>
-
-          {!isEditMode ? (
-            <TouchableOpacity
-              style={styles.editButton}
-              onPress={handleEdit}
-              activeOpacity={0.7}
-            >
-              <Ionicons
-                name="create-outline"
-                size={16}
-                color="rgba(255, 255, 255, 0.9)"
-              />
-              <Text style={styles.editButtonText}>Edit</Text>
-            </TouchableOpacity>
-          ) : (
-            <View style={styles.editActions}>
-              <TouchableOpacity
-                style={styles.cancelButton}
-                onPress={handleCancel}
-                activeOpacity={0.7}
-              >
-                <Text style={styles.cancelButtonText}>Cancel</Text>
-              </TouchableOpacity>
-
-              <TouchableOpacity
-                style={styles.saveButton}
-                onPress={handleSave}
-                activeOpacity={0.7}
-              >
-                <Ionicons
-                  name="checkmark"
-                  size={20}
-                  color="rgba(255, 255, 255, 0.9)"
-                />
-                <Text style={styles.saveButtonText}>Save</Text>
-              </TouchableOpacity>
-            </View>
-          )}
-        </View>
+        <JuneHeader />
 
         <ScrollView
           style={styles.scrollView}
@@ -247,13 +176,13 @@ export default function JuneThinks() {
           >
             <View style={styles.iconWrapper}>
               <LinearGradient
-                colors={[`${color}40`, `${color}20`, "transparent"]}
+                colors={[`${color}25`, `${color}10`, "transparent"]}
                 style={styles.iconGradientBg}
               />
               <View
                 style={[
                   styles.iconContainer,
-                  { backgroundColor: `${color}25` },
+                  { backgroundColor: `${color}15` },
                 ]}
               >
                 <MaterialCommunityIcons name={icon} size={36} color={color} />
@@ -265,88 +194,58 @@ export default function JuneThinks() {
             </Text>
           </Animated.View>
 
-          <View style={styles.content}>
-            <View style={styles.pointsWrapper}>
-              {editablePoints.map((point: string, idx: number) => (
-                <Animated.View
-                  key={idx}
-                  style={styles.pointContainer}
-                  entering={FadeInUp.delay(idx * 150 + 400).duration(600)}
-                >
-                  <LinearGradient
-                    colors={[
-                      "rgba(255, 255, 255, 0.15)",
-                      "rgba(255, 255, 255, 0.08)",
-                    ]}
-                    style={styles.pointCard}
-                    start={{ x: 0, y: 0 }}
-                    end={{ x: 1, y: 1 }}
-                  >
-                    <View style={styles.pointContent}>
-                      <View
-                        style={[
-                          styles.bulletContainer,
-                          { backgroundColor: color },
-                        ]}
-                      >
-                        <Text style={styles.bullet}>{idx + 1}</Text>
-                      </View>
-
-                      {!isEditMode ? (
-                        <Text style={styles.pointText}>{point}</Text>
-                      ) : (
-                        <View style={styles.editPointContainer}>
-                          <TextInput
-                            style={styles.editPointInput}
-                            value={point}
-                            onChangeText={(text) => updatePoint(idx, text)}
-                            placeholder="Enter point..."
-                            placeholderTextColor="rgba(255, 255, 255, 0.4)"
-                            multiline={true}
-                            textAlignVertical="top"
-                          />
-                          <TouchableOpacity
-                            style={styles.removePointButton}
-                            onPress={() => removePoint(idx)}
-                            activeOpacity={0.7}
-                          >
-                            <Ionicons
-                              name="close-circle"
-                              size={22}
-                              color="#FF6B6B"
-                            />
-                          </TouchableOpacity>
-                        </View>
-                      )}
-                    </View>
-                  </LinearGradient>
-                </Animated.View>
-              ))}
-            </View>
-
-            {isEditMode && (
-              <Animated.View
-                style={styles.addPointContainer}
-                entering={FadeInUp.delay(500).duration(600)}
+          <Animated.View
+            style={styles.content}
+            entering={FadeInUp.delay(300).duration(800)}
+          >
+            <BlurView intensity={20} tint="light" style={styles.glassContainer}>
+              <LinearGradient
+                colors={[
+                  "rgba(239, 221, 224, 0.35)", // #EFDDE0 peachy blush
+                  "rgba(212, 195, 236, 0.25)", // #D4C3EC lavender
+                  "rgba(239, 221, 224, 0.15)", // #EFDDE0 peachy blush
+                  "rgba(255, 255, 255, 0.08)",
+                ]}
+                style={styles.liquidGlass}
+                start={{ x: 0, y: 0 }}
+                end={{ x: 1, y: 1 }}
               >
-                <TouchableOpacity
-                  style={[styles.addPointButton, { borderColor: color + "60" }]}
-                  onPress={addNewPoint}
-                  activeOpacity={0.8}
-                >
-                  <LinearGradient
-                    colors={[`${color}20`, `${color}10`]}
-                    style={styles.addPointGradient}
-                  >
-                    <Ionicons name="add" size={24} color={color} />
-                    <Text style={[styles.addPointText, { color: color }]}>
-                      Add Point
-                    </Text>
-                  </LinearGradient>
-                </TouchableOpacity>
-              </Animated.View>
-            )}
-          </View>
+                <View style={styles.pointsWrapper}>
+                  {points.map((point: string, idx: number) => (
+                    <Animated.View
+                      key={idx}
+                      style={styles.pointContainer}
+                      entering={FadeInUp.delay(idx * 100 + 500).duration(600)}
+                    >
+                      <View style={styles.pointContent}>
+                        <View
+                          style={[
+                            styles.bulletContainer,
+                            { backgroundColor: color },
+                          ]}
+                        >
+                          <Text style={styles.bullet}>{idx + 1}</Text>
+                        </View>
+                        <Text style={styles.pointText}>{point}</Text>
+                      </View>
+                      {idx < points.length - 1 && (
+                        <View style={styles.separator} />
+                      )}
+                    </Animated.View>
+                  ))}
+                </View>
+              </LinearGradient>
+            </BlurView>
+          </Animated.View>
+
+          <Animated.View
+            style={styles.footer}
+            entering={FadeInUp.delay(800).duration(600)}
+          >
+            <Text style={styles.footerText}>
+              These insights evolve as June learns more about you
+            </Text>
+          </Animated.View>
         </ScrollView>
       </LinearGradient>
     </View>
@@ -372,103 +271,36 @@ const styles = StyleSheet.create({
     position: "absolute",
   },
   particleInner: {
-    backgroundColor: "rgba(255, 255, 255, 0.3)",
+    backgroundColor: "rgba(0, 0, 0, 0.1)",
     borderRadius: 50,
-    shadowColor: "rgba(255, 255, 255, 0.5)",
+    shadowColor: "rgba(0, 0, 0, 0.2)",
     shadowOffset: { width: 0, height: 0 },
-    shadowOpacity: 0.8,
-    shadowRadius: 4,
+    shadowOpacity: 0.3,
+    shadowRadius: 3,
   },
-  glassOverlay: {
+  // Header Styles
+  header: {
     position: "absolute",
     top: 0,
-    left: 0,
-    right: 0,
-    bottom: 0,
-    backgroundColor: "rgba(255, 255, 255, 0.02)",
-    zIndex: 1,
-  },
-  header: {
+    width: "100%",
+    paddingHorizontal: 20,
+    paddingBottom: 12,
     flexDirection: "row",
-    justifyContent: "space-between",
+    justifyContent: "flex-start",
     alignItems: "center",
-    paddingHorizontal: 24,
-    paddingBottom: 20,
-    zIndex: 10,
+    zIndex: 100,
+    borderBottomColor: "rgba(251, 247, 247, 0.64)",
+    borderBottomWidth: 0.5,
   },
   backButton: {
-    width: 46,
-    height: 46,
-    borderRadius: 23,
-    backgroundColor: "rgba(255, 255, 255, 0.15)",
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    backgroundColor: "rgba(0, 0, 0, 0.1)",
     alignItems: "center",
     justifyContent: "center",
     borderWidth: 1,
-    borderColor: "rgba(255, 255, 255, 0.25)",
-    shadowColor: "rgba(0, 0, 0, 0.1)",
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.1,
-    shadowRadius: 8,
-  },
-  editButton: {
-    flexDirection: "row",
-    alignItems: "center",
-    paddingHorizontal: 18,
-    paddingVertical: 12,
-    borderRadius: 23,
-    backgroundColor: "rgba(255, 255, 255, 0.15)",
-    borderWidth: 1,
-    borderColor: "rgba(255, 255, 255, 0.25)",
-    shadowColor: "rgba(0, 0, 0, 0.1)",
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.1,
-    shadowRadius: 8,
-  },
-  editButtonText: {
-    color: "rgba(255, 255, 255, 0.9)",
-    fontSize: 14,
-    fontWeight: "600",
-    marginLeft: 6,
-    fontFamily: "Montserrat",
-  },
-  editActions: {
-    flexDirection: "row",
-    gap: 12,
-  },
-  saveButton: {
-    flexDirection: "row",
-    alignItems: "center",
-    paddingHorizontal: 18,
-    paddingVertical: 12,
-    borderRadius: 23,
-    backgroundColor: "rgba(76, 175, 80, 0.25)",
-    borderWidth: 1,
-    borderColor: "rgba(76, 175, 80, 0.4)",
-    shadowColor: "rgba(76, 175, 80, 0.3)",
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.2,
-    shadowRadius: 8,
-  },
-  saveButtonText: {
-    color: "rgba(255, 255, 255, 0.9)",
-    fontSize: 14,
-    fontWeight: "600",
-    marginLeft: 6,
-    fontFamily: "Montserrat",
-  },
-  cancelButton: {
-    paddingHorizontal: 18,
-    paddingVertical: 12,
-    borderRadius: 23,
-    backgroundColor: "rgba(255, 255, 255, 0.1)",
-    borderWidth: 1,
-    borderColor: "rgba(255, 255, 255, 0.2)",
-  },
-  cancelButtonText: {
-    color: "rgba(255, 255, 255, 0.8)",
-    fontSize: 14,
-    fontWeight: "600",
-    fontFamily: "Montserrat",
+    borderColor: "rgba(0, 0, 0, 0.1)",
   },
   scrollView: {
     flex: 1,
@@ -476,6 +308,7 @@ const styles = StyleSheet.create({
   },
   scrollContent: {
     paddingHorizontal: 24,
+    paddingTop: 140,
     paddingBottom: 40,
   },
   headerContent: {
@@ -488,11 +321,11 @@ const styles = StyleSheet.create({
   },
   iconGradientBg: {
     position: "absolute",
-    width: 120,
-    height: 120,
-    borderRadius: 60,
-    top: -20,
-    left: -20,
+    width: 100,
+    height: 100,
+    borderRadius: 50,
+    top: -10,
+    left: -10,
   },
   iconContainer: {
     width: 80,
@@ -500,131 +333,121 @@ const styles = StyleSheet.create({
     borderRadius: 40,
     alignItems: "center",
     justifyContent: "center",
-    borderWidth: 1.5,
-    borderColor: "rgba(255, 255, 255, 0.25)",
-    shadowColor: "rgba(0, 0, 0, 0.2)",
-    shadowOffset: { width: 0, height: 8 },
-    shadowOpacity: 0.15,
-    shadowRadius: 16,
+    borderWidth: 1,
+    borderColor: "rgba(0, 0, 0, 0.1)",
+    shadowColor: "rgba(0, 0, 0, 0.1)",
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.1,
+    shadowRadius: 12,
   },
   title: {
-    fontSize: 24,
+    fontSize: 30,
     textAlign: "center",
-    color: "rgba(255, 255, 255, 0.95)",
+    color: "#000",
     fontFamily: "Fraunces",
-    lineHeight: 32,
-    letterSpacing: 0.5,
+    lineHeight: 36,
+    // letterSpacing: 0.5,
     fontWeight: "600",
     marginBottom: 8,
-    textShadowColor: "rgba(0, 0, 0, 0.3)",
-    textShadowOffset: { width: 0, height: 2 },
-    textShadowRadius: 4,
   },
   subtitle: {
-    fontSize: 14,
+    fontSize: 16,
     textAlign: "center",
-    color: "rgba(255, 255, 255, 0.7)",
+    color: "rgba(0, 0, 0, 0.7)",
     fontFamily: "Montserrat",
     fontWeight: "400",
     letterSpacing: 0.3,
   },
   content: {
     flex: 1,
+    marginBottom: 32,
+  },
+  glassContainer: {
+    borderRadius: 35,
+    overflow: "hidden",
+    borderWidth: 1.5,
+    borderColor: "rgba(212, 195, 236, 0.4)", // Lavender border
+    shadowColor: "rgba(139, 92, 246, 0.15)", // Purple shadow to match brain icon
+    shadowOffset: { width: 0, height: 20 },
+    shadowOpacity: 0.4,
+    shadowRadius: 30,
+    elevation: 20,
+    backgroundColor: "rgba(239, 221, 224, 0.08)", // Subtle peachy base
+  },
+  liquidGlass: {
+    borderRadius: 32,
+    padding: 3,
   },
   pointsWrapper: {
-    gap: 16,
+    backgroundColor: "rgba(255, 255, 255, 0.12)",
+    borderRadius: 28,
+    padding: 24,
+    borderWidth: 1,
+    borderColor: "rgba(212, 195, 236, 0.3)", // Lavender inner border
+    shadowColor: "rgba(239, 221, 224, 0.3)",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.5,
+    shadowRadius: 8,
   },
   pointContainer: {
-    marginBottom: 4,
-  },
-  pointCard: {
-    borderRadius: 20,
-    borderWidth: 1,
-    borderColor: "rgba(255, 255, 255, 0.2)",
-    shadowColor: "rgba(0, 0, 0, 0.1)",
-    shadowOffset: { width: 0, height: 8 },
-    shadowOpacity: 0.1,
-    shadowRadius: 16,
-    overflow: "hidden",
+    marginVertical: 1,
   },
   pointContent: {
     flexDirection: "row",
-    alignItems: "flex-start",
-    padding: 20,
+    alignItems: "center",
+    paddingVertical: 10,
   },
   bulletContainer: {
-    width: 36,
-    height: 36,
-    borderRadius: 18,
+    width: 26,
+    height: 26,
+    borderRadius: 13,
     alignItems: "center",
     justifyContent: "center",
-    marginRight: 16,
+    marginRight: 18,
     flexShrink: 0,
-    shadowColor: "rgba(0, 0, 0, 0.2)",
-    shadowOffset: { width: 0, height: 4 },
+    // shadowColor: "rgba(0, 0, 0, 0.15)",
+    shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.2,
-    shadowRadius: 8,
+    shadowRadius: 6,
   },
   bullet: {
-    fontSize: 16,
+    fontSize: 12,
     fontWeight: "700",
-    color: "rgba(255, 255, 255, 0.95)",
+    color: "#fff",
     fontFamily: "Montserrat",
   },
   pointText: {
-    fontSize: 16,
-    color: "rgba(255, 255, 255, 0.9)",
-    lineHeight: 24,
-    fontWeight: "400",
+    fontSize: 18,
+    color: "rgba(0, 0, 0, 0.85)",
+    lineHeight: 26,
+    fontWeight: "500",
     flex: 1,
-    fontFamily: "Fraunces",
+    fontFamily: "Montserrat",
+    letterSpacing: 0,
+    textShadowColor: "rgba(239, 221, 224, 0.6)", // Peachy text shadow
+    textShadowOffset: { width: 0, height: 1 },
+    textShadowRadius: 3,
   },
-  editPointContainer: {
-    flex: 1,
-    flexDirection: "row",
-    alignItems: "flex-start",
+  separator: {
+    height: 1,
+    backgroundColor: "rgba(212, 195, 236, 0.25)", // Lavender separator
+    marginHorizontal: 48,
+    marginVertical: 4,
+    shadowColor: "rgba(239, 221, 224, 0.4)", // Peachy shadow
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.3,
+    shadowRadius: 2,
   },
-  editPointInput: {
-    flex: 1,
-    fontSize: 16,
-    color: "rgba(255, 255, 255, 0.9)",
-    backgroundColor: "rgba(255, 255, 255, 0.1)",
-    borderRadius: 12,
-    paddingHorizontal: 16,
-    paddingVertical: 12,
-    borderWidth: 1,
-    borderColor: "rgba(255, 255, 255, 0.2)",
-    minHeight: 48,
-    fontWeight: "400",
-    fontFamily: "Fraunces",
-  },
-  removePointButton: {
-    marginLeft: 12,
-    padding: 6,
-    marginTop: 6,
-  },
-  addPointContainer: {
-    marginTop: 24,
-    marginBottom: 20,
-  },
-  addPointButton: {
-    borderRadius: 20,
-    borderWidth: 2,
-    borderStyle: "dashed",
-    overflow: "hidden",
-  },
-  addPointGradient: {
-    flexDirection: "row",
+  footer: {
     alignItems: "center",
-    justifyContent: "center",
-    paddingVertical: 18,
-    paddingHorizontal: 24,
+    marginTop: 24,
   },
-  addPointText: {
-    fontSize: 16,
-    fontWeight: "600",
-    marginLeft: 10,
-    fontFamily: "Fraunces",
-    letterSpacing: 0.5,
+  footerText: {
+    fontSize: 14,
+    color: "rgba(0, 0, 0, 0.6)",
+    fontFamily: "Montserrat",
+    fontStyle: "italic",
+    textAlign: "center",
+    letterSpacing: 0.3,
   },
 });
