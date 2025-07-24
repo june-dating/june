@@ -1,8 +1,8 @@
 "use client";
 
+import Clipboard from "@react-native-clipboard/clipboard";
 import { LinearGradient } from "expo-linear-gradient";
 import { router } from "expo-router";
-import { Clipboard } from "react-native";
 
 import { Ionicons } from "@expo/vector-icons";
 import { useFonts } from "expo-font";
