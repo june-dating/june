@@ -133,7 +133,7 @@ export default function OnboardingScreen() {
 
             <TouchableOpacity
               style={styles.loginTextContainer}
-              onPress={() => router.push("/(tabs)/profile-screen")}
+              onPress={() => router.push("/access")}
               activeOpacity={0.7}
             >
               <Text style={styles.loginText}>Already a user?</Text>

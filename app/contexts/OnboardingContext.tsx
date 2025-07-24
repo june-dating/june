@@ -3,9 +3,8 @@ import React, { createContext, ReactNode, useContext, useState } from "react";
 export interface OnboardingData {
   full_name: string;
   birth_date: string; // ISO date string for database compatibility
-  gender: "male" | "female" | "other";
-  custom_gender_identity?: string;
-  looking_for: "male" | "female" | "other";
+  gender: "male" | "female" | "everyone";
+  looking_for: "male" | "female" | "everyone";
   instagram_username: string;
   twitter_username?: string;
   linkedin_username?: string;

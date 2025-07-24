@@ -73,7 +73,7 @@ export default function VoiceOnboardingScreen() {
 
   const handleDone = () => {
     // Navigate to next screen
-    router.push("/photo-upload");
+    router.push("/(tabs)/profile-screen" as any);
   };
 
   return (

@@ -35,13 +35,13 @@ export default function CelebrateScreen() {
   // Auto-redirect function with error handling
   const navigateToAccess = () => {
     try {
-      router.push("/access");
+      router.push("/gpt");
     } catch (error) {
       console.error("Navigation error:", error);
       // Fallback navigation
       setTimeout(() => {
         try {
-          router.replace("/access");
+          router.replace("/gpt");
         } catch (fallbackError) {
           console.error("Fallback navigation error:", fallbackError);
         }
@@ -51,47 +51,47 @@ export default function CelebrateScreen() {
 
   // Staggered entrance animations
   useEffect(() => {
-    // Title slide in from left (immediate, slower)
+    // Title slide in from left (immediate, faster)
     titleOpacity.value = withTiming(1, {
-      duration: 1500,
+      duration: 500,
       easing: Easing.out(Easing.quad),
     });
     titleTranslateX.value = withTiming(0, {
-      duration: 1500,
+      duration: 500,
       easing: Easing.out(Easing.quad),
     });
 
-    // Subtitle entrance (800ms delay, slower)
+    // Subtitle entrance (300ms delay, fast)
     setTimeout(() => {
       subtitleOpacity.value = withTiming(1, {
-        duration: 1200,
+        duration: 400,
         easing: Easing.out(Easing.quad),
       });
       subtitleTranslateY.value = withTiming(0, {
-        duration: 1200,
+        duration: 400,
         easing: Easing.out(Easing.quad),
       });
-    }, 800);
+    }, 300);
 
-    // Progress bar entrance (2500ms delay)
+    // Progress bar entrance (900ms delay)
     setTimeout(() => {
       progressOpacity.value = withTiming(1, {
-        duration: 800,
+        duration: 200,
         easing: Easing.out(Easing.quad),
       });
 
-      // Progress bar fill animation (completes by 7000ms total)
+      // Progress bar fill animation (completes by ~3.5s total)
       progressWidth.value = withTiming(
         1,
         {
-          duration: 3500,
+          duration: 2200,
           easing: Easing.bezier(0.25, 0.46, 0.45, 0.94),
         },
         (finished) => {
           if (finished) runOnJS(navigateToAccess)();
         }
       );
-    }, 2500);
+    }, 900);
   }, []);
 
   // Animated styles
@@ -127,37 +127,35 @@ export default function CelebrateScreen() {
         start={{ x: 1, y: 1.3 }}
         end={{ x: 0, y: 0 }}
       >
-        <View style={[styles.content, { paddingTop: insets.top }]}>
-          {/* Left-aligned Content */}
-          <View style={styles.leftContainer}>
-            <View style={styles.logoContainer}>
-              <Image
-                source={require("../assets/images/pink.png")}
-                style={styles.logoImage}
-                resizeMode="contain"
-              />
-            </View>
-
+        <View style={[styles.content, { paddingTop: insets.top + 60 }]}>
+          <View style={styles.headerContainer}>
             <Animated.View style={[styles.textContainer, titleAnimatedStyle]}>
-              <Text style={styles.title}>That's It.</Text>
+              <Text style={styles.title}>{`Time to go\ndeeper`}</Text>
             </Animated.View>
-
             <Animated.View
               style={[styles.subtitleContainer, subtitleAnimatedStyle]}
             >
               <Text style={styles.subtitle}>
-                One last step before the real magic begins.
+                June will know you better than yourself.
               </Text>
             </Animated.View>
-
-            {/* Progress Bar Below Text */}
+          </View>
+          {/* Pink1 image above progress bar */}
+          <View style={styles.progressBarCenterer}>
+            <View style={{ alignItems: "center", marginBottom: 20 }}>
+              <Image
+                source={require("../assets/images/pink1.png")}
+                style={styles.pink1Image}
+                resizeMode="contain"
+              />
+            </View>
             <Animated.View
               style={[styles.progressContainer, progressContainerStyle]}
             >
               <View style={styles.progressTrack}>
                 <Animated.View style={[styles.progressFill, progressFillStyle]}>
                   <LinearGradient
-                    colors={["#B8860B", "#CD853F", "#D2691E"]} // Darker golden gradient
+                    colors={["#B8860B", "#CD853F", "#D2691E"]}
                     style={styles.progressGradient}
                     start={{ x: 0, y: 0 }}
                     end={{ x: 1, y: 0 }}
@@ -183,39 +181,51 @@ const styles = StyleSheet.create({
     flex: 1,
     paddingHorizontal: 24,
     paddingBottom: 40,
+    justifyContent: "flex-start",
   },
-  leftContainer: {
-    flex: 1,
-    justifyContent: "center",
+  headerContainer: {
     alignItems: "flex-start",
+    marginBottom: 36,
+    width: "100%",
   },
   textContainer: {
     alignItems: "flex-start",
-    marginBottom: 16,
+    marginBottom: 8,
+    width: "100%",
   },
   title: {
-    fontSize: 48,
+    fontSize: 34,
     fontWeight: "600",
     color: OnboardingColors.text.primary,
     textAlign: "left",
-    lineHeight: 56,
+    marginBottom: 8,
     fontFamily: "Fraunces",
   },
   subtitleContainer: {
     alignItems: "flex-start",
-    marginBottom: 40,
+    marginBottom: 0,
+    width: "100%",
   },
   subtitle: {
-    fontSize: 14,
+    fontSize: 16,
     color: OnboardingColors.text.secondary,
     textAlign: "left",
-    lineHeight: 24,
+    lineHeight: 26,
     fontFamily: "Montserrat",
+    marginHorizontal: 0,
+    paddingBottom: 30,
     maxWidth: "85%",
+  },
+  progressBarCenterer: {
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
+    width: "100%",
+    top: -130,
   },
   progressContainer: {
     width: "100%",
-    alignItems: "flex-start",
+    alignItems: "center", // changed from flex-start
     paddingHorizontal: 0,
   },
   progressTrack: {
@@ -244,14 +254,9 @@ const styles = StyleSheet.create({
     shadowRadius: 8,
     elevation: 4,
   },
-  logoContainer: {
-    width: 80,
-    height: 80,
-    marginBottom: 24,
-    alignItems: "flex-start",
-  },
-  logoImage: {
-    width: "100%",
-    height: "100%",
+  pink1Image: {
+    width: width * 0.32,
+    height: width * 0.32,
+    marginBottom: 0,
   },
 });

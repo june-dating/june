@@ -9,11 +9,12 @@
  */
 
 import { Ionicons } from "@expo/vector-icons";
+import { Picker } from "@react-native-picker/picker";
 import { BlurView } from "expo-blur";
 import { useFonts } from "expo-font";
 import { LinearGradient } from "expo-linear-gradient";
 import { useRouter } from "expo-router";
-import React, { useEffect, useRef, useState } from "react";
+import React, { useState } from "react";
 import {
   Alert,
   Animated,
@@ -42,15 +43,6 @@ const GENDER_OPTIONS: PickerOption[] = [
   { label: "Man", value: "man" },
   { label: "Non-binary", value: "non-binary" },
   { label: "Prefer not to say", value: "prefer-not-to-say" },
-];
-
-const PRONOUNS_OPTIONS: PickerOption[] = [
-  { label: "She/Her", value: "she/her" },
-  { label: "He/Him", value: "he/him" },
-  { label: "They/Them", value: "they/them" },
-  { label: "She/They", value: "she/they" },
-  { label: "He/They", value: "he/they" },
-  { label: "Other", value: "other" },
 ];
 
 const LOOKING_FOR_OPTIONS: PickerOption[] = [
@@ -155,7 +147,6 @@ const ETHNICITY_OPTIONS: PickerOption[] = [
   { label: "Native American", value: "native-american" },
   { label: "Pacific Islander", value: "pacific-islander" },
   { label: "Mixed", value: "mixed" },
-  { label: "Other", value: "other" },
   { label: "Prefer not to say", value: "prefer-not-to-say" },
 ];
 
@@ -179,113 +170,6 @@ const LANGUAGE_OPTIONS: PickerOption[] = [
   { label: "Other", value: "other" },
 ];
 
-// Custom Modal Picker Component
-interface ModalPickerProps {
-  visible: boolean;
-  onClose: () => void;
-  onSelect: (value: string) => void;
-  options: PickerOption[];
-  title: string;
-  selectedValue: string;
-}
-
-const ModalPicker: React.FC<ModalPickerProps> = ({
-  visible,
-  onClose,
-  onSelect,
-  options,
-  title,
-  selectedValue,
-}) => {
-  const slideAnim = useRef(new Animated.Value(SCREEN_HEIGHT)).current;
-
-  useEffect(() => {
-    if (visible) {
-      Animated.spring(slideAnim, {
-        toValue: 0,
-        useNativeDriver: true,
-        tension: 200,
-        friction: 12,
-      }).start();
-    } else {
-      Animated.timing(slideAnim, {
-        toValue: SCREEN_HEIGHT,
-        duration: 150,
-        useNativeDriver: true,
-      }).start();
-    }
-  }, [visible]);
-
-  const handleOptionPress = (value: string) => {
-    onSelect(value);
-    onClose();
-  };
-
-  return (
-    <Modal
-      visible={visible}
-      transparent
-      animationType="fade"
-      onRequestClose={onClose}
-    >
-      <View style={styles.modalOverlay}>
-        <TouchableOpacity
-          style={styles.modalBackdrop}
-          activeOpacity={1}
-          onPress={onClose}
-        />
-        <Animated.View
-          style={[
-            styles.modalContainer,
-            {
-              transform: [{ translateY: slideAnim }],
-            },
-          ]}
-        >
-          {/* Header */}
-          <View style={styles.modalHeader}>
-            <TouchableOpacity onPress={onClose} style={styles.modalCloseButton}>
-              <Text style={styles.modalCloseText}>Cancel</Text>
-            </TouchableOpacity>
-            <Text style={styles.modalTitle}>{title}</Text>
-            <View style={styles.modalCloseButton} />
-          </View>
-
-          {/* Options */}
-          <ScrollView
-            style={styles.modalScrollView}
-            showsVerticalScrollIndicator={false}
-          >
-            {options.map((option) => (
-              <TouchableOpacity
-                key={option.value}
-                style={[
-                  styles.modalOption,
-                  selectedValue === option.value && styles.modalOptionSelected,
-                ]}
-                onPress={() => handleOptionPress(option.value)}
-              >
-                <Text
-                  style={[
-                    styles.modalOptionText,
-                    selectedValue === option.value &&
-                      styles.modalOptionTextSelected,
-                  ]}
-                >
-                  {option.label}
-                </Text>
-                {selectedValue === option.value && (
-                  <Ionicons name="checkmark" size={20} color="#007AFF" />
-                )}
-              </TouchableOpacity>
-            ))}
-          </ScrollView>
-        </Animated.View>
-      </View>
-    </Modal>
-  );
-};
-
 export default function EditProfileScreen() {
   const router = useRouter();
   const insets = useSafeAreaInsets();
@@ -300,7 +184,6 @@ export default function EditProfileScreen() {
     age: 23,
     aboutMe: "",
     gender: "woman",
-    pronouns: "she/her",
     lookingFor: "men",
     ethnicity: "",
     location: "New York City, USA",
@@ -315,15 +198,16 @@ export default function EditProfileScreen() {
     languages: [],
   });
 
-  // Modal picker state
-  const [modalPickerVisible, setModalPickerVisible] = useState(false);
-  const [currentPickerField, setCurrentPickerField] = useState<
+  // Picker modal state
+  const [pickerModalVisible, setPickerModalVisible] = useState(false);
+  const [pickerModalField, setPickerModalField] = useState<
     keyof EditProfileData | null
   >(null);
-  const [currentPickerOptions, setCurrentPickerOptions] = useState<
-    PickerOption[]
-  >([]);
-  const [currentPickerTitle, setCurrentPickerTitle] = useState("");
+  const [pickerModalOptions, setPickerModalOptions] = useState<PickerOption[]>(
+    []
+  );
+  const [pickerModalLabel, setPickerModalLabel] = useState("");
+  const [tempPickerValue, setTempPickerValue] = useState<string | number>("");
 
   if (!fontsLoaded) return null;
 
@@ -338,29 +222,6 @@ export default function EditProfileScreen() {
     Alert.alert("Success", "Profile updated successfully!", [
       { text: "OK", onPress: () => router.back() },
     ]);
-  };
-
-  const openPicker = (
-    field: keyof EditProfileData,
-    options: PickerOption[],
-    title: string
-  ) => {
-    setCurrentPickerField(field);
-    setCurrentPickerOptions(options);
-    setCurrentPickerTitle(title);
-    setModalPickerVisible(true);
-  };
-
-  const handlePickerSelect = (value: string) => {
-    if (currentPickerField) {
-      if (currentPickerField === "age") {
-        updateField(currentPickerField, parseInt(value, 10));
-      } else if (currentPickerField === "languages") {
-        updateField(currentPickerField, [value]);
-      } else {
-        updateField(currentPickerField, value);
-      }
-    }
   };
 
   const getDisplayValue = (field: keyof EditProfileData): string => {
@@ -381,6 +242,37 @@ export default function EditProfileScreen() {
     const value = getDisplayValue(field);
     const option = options.find((opt) => opt.value === value);
     return option ? option.label : `Select ${field}...`;
+  };
+
+  const openPickerModal = (
+    field: keyof EditProfileData,
+    options: PickerOption[],
+    label: string
+  ) => {
+    setPickerModalField(field);
+    setPickerModalOptions(options);
+    setPickerModalLabel(label);
+    const value = Array.isArray(profileData[field])
+      ? (profileData[field] as string[])[0] || ""
+      : (profileData[field] as string | number);
+    setTempPickerValue(value);
+    setPickerModalVisible(true);
+  };
+
+  const closePickerModal = () => {
+    setPickerModalVisible(false);
+    setTimeout(() => {
+      setPickerModalField(null);
+      setPickerModalOptions([]);
+      setPickerModalLabel("");
+    }, 200);
+  };
+
+  const handlePickerDone = () => {
+    if (pickerModalField) {
+      updateField(pickerModalField, tempPickerValue);
+    }
+    closePickerModal();
   };
 
   const renderTextInput = (
@@ -413,28 +305,36 @@ export default function EditProfileScreen() {
     field: keyof EditProfileData,
     icon: string,
     options: PickerOption[]
-  ) => (
-    <View style={styles.fieldContainer}>
-      <View style={styles.fieldHeader}>
-        <Ionicons name={icon as any} size={18} color="#333" />
-        <Text style={styles.fieldLabel}>{label}</Text>
-      </View>
-      <TouchableOpacity
-        style={styles.pickerButton}
-        onPress={() => openPicker(field, options, `Select ${label}`)}
-      >
-        <Text
-          style={[
-            styles.pickerButtonText,
-            !getDisplayValue(field) && styles.pickerButtonPlaceholder,
-          ]}
+  ) => {
+    const value = Array.isArray(profileData[field])
+      ? (profileData[field] as string[])[0] || ""
+      : (profileData[field] as string | number);
+    const selectedLabel =
+      options.find((opt) => opt.value === value)?.label || `Select ${label}`;
+    return (
+      <View style={styles.fieldContainer}>
+        <View style={styles.fieldHeader}>
+          <Ionicons name={icon as any} size={18} color="#333" />
+          <Text style={styles.fieldLabel}>{label}</Text>
+        </View>
+        <TouchableOpacity
+          style={styles.pickerButton}
+          onPress={() => openPickerModal(field, options, label)}
+          activeOpacity={0.8}
         >
-          {getSelectedLabel(field, options)}
-        </Text>
-        <Ionicons name="chevron-down" size={20} color="#666" />
-      </TouchableOpacity>
-    </View>
-  );
+          <Text
+            style={[
+              styles.pickerButtonText,
+              !value && styles.pickerButtonPlaceholder,
+            ]}
+          >
+            {selectedLabel}
+          </Text>
+          <Ionicons name="chevron-down" size={20} color="#666" />
+        </TouchableOpacity>
+      </View>
+    );
+  };
 
   const renderSection = (title: string, children: React.ReactNode) => (
     <View style={styles.section}>
@@ -511,12 +411,6 @@ export default function EditProfileScreen() {
               "Identity",
               <>
                 {renderPicker("Gender", "gender", "person", GENDER_OPTIONS)}
-                {renderPicker(
-                  "Pronouns",
-                  "pronouns",
-                  "chatbubble",
-                  PRONOUNS_OPTIONS
-                )}
                 {renderPicker(
                   "Looking For",
                   "lookingFor",
@@ -613,17 +507,51 @@ export default function EditProfileScreen() {
             <View style={styles.bottomPadding} />
           </ScrollView>
         </KeyboardAvoidingView>
-
-        {/* Modal Picker */}
-        <ModalPicker
-          visible={modalPickerVisible}
-          onClose={() => setModalPickerVisible(false)}
-          onSelect={handlePickerSelect}
-          options={currentPickerOptions}
-          title={currentPickerTitle}
-          selectedValue={getDisplayValue(currentPickerField || "name")}
-        />
       </LinearGradient>
+
+      {/* Picker Modal */}
+      <Modal
+        visible={pickerModalVisible}
+        transparent
+        animationType="slide"
+        onRequestClose={closePickerModal}
+      >
+        <TouchableOpacity
+          style={styles.modalOverlay}
+          activeOpacity={1}
+          onPress={closePickerModal}
+        />
+        <Animated.View style={styles.modalContainer}>
+          <View style={styles.modalHeader}>
+            <TouchableOpacity
+              onPress={closePickerModal}
+              style={styles.modalCloseButton}
+            >
+              <Text style={styles.modalCloseText}>Cancel</Text>
+            </TouchableOpacity>
+            <Text style={styles.modalTitle}>{pickerModalLabel}</Text>
+            <TouchableOpacity
+              onPress={handlePickerDone}
+              style={styles.modalCloseButton}
+            >
+              <Text style={styles.modalCloseText}>Done</Text>
+            </TouchableOpacity>
+          </View>
+          <Picker
+            selectedValue={tempPickerValue}
+            onValueChange={(itemValue) => setTempPickerValue(itemValue)}
+            style={{ width: "100%" }}
+          >
+            {pickerModalOptions.map((option) => (
+              <Picker.Item
+                key={option.value}
+                label={option.label}
+                value={option.value}
+              />
+            ))}
+          </Picker>
+        </Animated.View>
+      </Modal>
     </View>
   );
 }

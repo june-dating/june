@@ -16,7 +16,7 @@ const INSIGHT_CARDS: InsightCardType[] = [
   },
   {
     id: "tips",
-    title: "June's tips to be a Better Date",
+    title: "Tips to be a Better Date",
     icon: "bulb",
     color: "#F59E0B",
     iconLibrary: "Ionicons",

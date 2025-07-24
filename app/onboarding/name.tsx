@@ -26,6 +26,14 @@ import { useOnboarding } from "../contexts/OnboardingContext";
 
 const { width, height } = Dimensions.get("window");
 
+// Responsive scaling utility
+const guidelineBaseWidth = 390; // iPhone 14 width
+const guidelineBaseHeight = 844; // iPhone 14 height
+const scale = (size: number) => (width / guidelineBaseWidth) * size;
+const verticalScale = (size: number) => (height / guidelineBaseHeight) * size;
+const moderateScale = (size: number, factor = 0.5) =>
+  size + (scale(size) - size) * factor;
+
 export default function NameScreen() {
   const insets = useSafeAreaInsets();
   const { onboardingData, updateOnboardingData } = useOnboarding();
@@ -208,49 +216,49 @@ const styles = StyleSheet.create({
   },
   content: {
     flex: 1,
-    paddingHorizontal: 24,
-    paddingBottom: 40,
+    paddingHorizontal: scale(24),
+    paddingBottom: verticalScale(40),
     justifyContent: "space-between",
   },
   progressContainer: {
-    marginBottom: 32,
+    marginBottom: verticalScale(32),
   },
   header: {
-    marginBottom: 48,
+    marginBottom: verticalScale(48),
   },
   title: {
-    fontSize: 36,
+    fontSize: scale(36),
     color: OnboardingColors.text.primary,
-    marginBottom: 12,
+    marginBottom: verticalScale(12),
     textAlign: "left",
-    lineHeight: 44,
+    lineHeight: scale(44),
     fontFamily: "Fraunces",
     fontWeight: "600",
   },
   subtitle: {
-    fontSize: 18,
+    fontSize: scale(18),
     color: OnboardingColors.text.secondary,
     textAlign: "left",
-    lineHeight: 24,
+    lineHeight: scale(24),
     maxWidth: "85%",
     fontFamily: "Montserrat",
   },
   inputContainer: {
     flex: 1,
     justifyContent: "flex-start",
-    paddingTop: 20,
-    minHeight: 120,
+    paddingTop: verticalScale(20),
+    minHeight: verticalScale(120),
   },
   inputWrapper: {
     backgroundColor: OnboardingColors.background.input,
-    borderRadius: 20,
+    borderRadius: scale(20),
     borderWidth: 2,
     borderColor: OnboardingColors.border.input,
     flexDirection: "row",
     alignItems: "center",
-    paddingHorizontal: 24,
-    paddingVertical: 20,
-    minHeight: 60,
+    paddingHorizontal: scale(24),
+    paddingVertical: verticalScale(20),
+    minHeight: verticalScale(60),
     shadowColor: OnboardingColors.shadow.primary,
     shadowOffset: OnboardingColors.shadow.offset,
     shadowOpacity: OnboardingColors.shadow.opacity.light,
@@ -260,19 +268,17 @@ const styles = StyleSheet.create({
   },
   input: {
     flex: 1,
-    fontSize: 18,
+    fontSize: scale(18),
     color: OnboardingColors.text.primary,
-    // fontWeight: "300",
     fontFamily: "Montserrat",
-    // letterSpacing: 0.5,
   },
   checkIcon: {
-    marginLeft: 12,
+    marginLeft: scale(12),
   },
   buttonContainer: {
     alignItems: "flex-end",
-    paddingTop: 16,
-    marginBottom: 40,
+    paddingTop: verticalScale(16),
+    marginBottom: verticalScale(40),
   },
   buttonWrapper: {
     shadowColor: OnboardingColors.shadow.primary,
@@ -281,7 +287,7 @@ const styles = StyleSheet.create({
     elevation: OnboardingColors.shadow.elevation.medium,
   },
   button: {
-    borderRadius: 20,
+    borderRadius: scale(20),
     overflow: "hidden",
   },
   buttonDisabled: {
@@ -291,14 +297,14 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "center",
-    paddingVertical: 10,
-    paddingHorizontal: 22,
+    paddingVertical: verticalScale(10),
+    paddingHorizontal: scale(22),
   },
   buttonText: {
-    fontSize: 18,
+    fontSize: scale(18),
     fontWeight: "700",
     color: OnboardingColors.text.button,
-    marginRight: 8,
+    marginRight: scale(8),
     fontFamily: "Fraunces",
   },
   buttonTextDisabled: {

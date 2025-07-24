@@ -268,9 +268,10 @@ export default function PhotoUploadScreen() {
   const handleComplete = () => {
     if (isComplete) {
       console.log(`${photos.length} photos uploaded, proceeding to next step`);
-      router.push("/gpt");
+      router.push("/juneconvo" as any);
     }
   };
+
   return (
     <View style={styles.container}>
       <StatusBar barStyle={OnboardingColors.statusBar} />

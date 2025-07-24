@@ -26,8 +26,8 @@ const ANIMATION_CONFIG = {
 };
 
 // Profile data
-const PROFILE_DATA: ProfileData = {
-  name: "Alice",
+const PROFILE_DATA = {
+  name: "Aija Mayrock",
   age: 23,
   location: "New York City, USA",
   personality: "INFJ | Author | Weekend poet",
@@ -36,7 +36,8 @@ const PROFILE_DATA: ProfileData = {
     { id: "1", uri: require("../../assets/images/img2.jpg") },
     { id: "3", uri: require("../../assets/images/img1.jpg") },
   ],
-};
+  height: "5'7''",
+} as ProfileData & { height: string };
 
 export default function ProfileContent() {
   const shimmer = useSharedValue(0);
@@ -76,12 +77,15 @@ export default function ProfileContent() {
       </View>
 
       <View style={styles.nameContainer}>
-        <Text style={styles.nameAge}>
-          {PROFILE_DATA.name}, {PROFILE_DATA.age}
-        </Text>
+        <Text style={styles.nameAge}>{PROFILE_DATA.name}</Text>
       </View>
 
       <View style={styles.infoContainer}>
+        <View style={styles.ageHeightRow}>
+          <Text style={styles.ageText}>{PROFILE_DATA.age}</Text>
+          <Text style={styles.dotText}> · </Text>
+          <Text style={styles.heightText}>{PROFILE_DATA.height}</Text>
+        </View>
         <View style={styles.locationRow}>
           <Ionicons
             name="home"
@@ -145,15 +149,16 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "center",
-    marginBottom: 8,
+    marginBottom: 5,
     position: "relative",
   },
   nameAge: {
     fontSize: 32,
-    fontWeight: "600",
+    fontWeight: "500",
     color: OnboardingColors.text.primary,
     textAlign: "center",
-    fontFamily: "Fraunces",
+    fontFamily: "Montserrat",
+    letterSpacing: -0.5,
   },
   personalityContainer: {
     backgroundColor: "rgba(255, 255, 255, 0.8)",
@@ -177,12 +182,20 @@ const styles = StyleSheet.create({
   },
   infoContainer: {
     alignItems: "center",
-    marginTop: 8,
+    marginTop: -2,
     marginBottom: 12,
   },
   locationRow: {
     flexDirection: "row",
     alignItems: "center",
+    justifyContent: "center",
+    marginTop: 2,
+  },
+  ageHeightRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    marginBottom: 2,
   },
   locationEmoji: {
     fontSize: 16,
@@ -194,5 +207,28 @@ const styles = StyleSheet.create({
     fontWeight: "400",
     textAlign: "center",
     fontFamily: "Montserrat",
+  },
+  ageText: {
+    fontSize: 16,
+    color: OnboardingColors.text.primary,
+    fontWeight: "400",
+    marginLeft: 4,
+    fontFamily: "Montserrat",
+    alignSelf: "center",
+  },
+  dotText: {
+    fontSize: 18,
+    color: OnboardingColors.text.secondary,
+    marginHorizontal: 2,
+    fontWeight: "600",
+    alignSelf: "center",
+  },
+  heightText: {
+    fontSize: 16,
+    color: OnboardingColors.text.primary,
+    fontWeight: "400",
+    marginLeft: 4,
+    fontFamily: "Montserrat",
+    alignSelf: "center",
   },
 });

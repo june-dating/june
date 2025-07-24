@@ -23,8 +23,15 @@ import ProgressBar from "../components/ProgressBar";
 import { useOnboarding } from "../contexts/OnboardingContext";
 
 const { width, height } = Dimensions.get("window");
+// Responsive scaling utility
+const guidelineBaseWidth = 390; // iPhone 14 width
+const guidelineBaseHeight = 844; // iPhone 14 height
+const scale = (size: number) => (width / guidelineBaseWidth) * size;
+const verticalScale = (size: number) => (height / guidelineBaseHeight) * size;
+const moderateScale = (size: number, factor = 0.5) =>
+  size + (scale(size) - size) * factor;
 
-type LookingForOption = "male" | "female" | "other";
+type LookingForOption = "male" | "female" | "everyone";
 
 export default function LookingForScreen() {
   const insets = useSafeAreaInsets();
@@ -114,10 +121,7 @@ export default function LookingForScreen() {
               <Text style={styles.title}>Who are you looking for?</Text>
               <Animated.View style={animatedSubtitleStyle}>
                 <Text style={styles.subtitle}>
-                  This helps us find the right people for you{" "}
-                  <Text style={styles.changeLaterText}>
-                    You can change this later.
-                  </Text>
+                  This helps us find the right people for you.
                 </Text>
               </Animated.View>
             </Animated.View>
@@ -183,16 +187,16 @@ export default function LookingForScreen() {
               <TouchableOpacity
                 style={[
                   styles.option,
-                  selectedOption === "other" && styles.optionSelected,
+                  selectedOption === "everyone" && styles.optionSelected,
                 ]}
-                onPress={() => handleOptionSelect("other")}
+                onPress={() => handleOptionSelect("everyone")}
                 activeOpacity={0.8}
               >
                 <Ionicons
                   name="people"
                   size={24}
                   color={
-                    selectedOption === "other"
+                    selectedOption === "everyone"
                       ? OnboardingColors.icon.primary
                       : OnboardingColors.icon.secondary
                   }
@@ -200,7 +204,7 @@ export default function LookingForScreen() {
                 <Text
                   style={[
                     styles.optionText,
-                    selectedOption === "other" && styles.optionTextSelected,
+                    selectedOption === "everyone" && styles.optionTextSelected,
                   ]}
                 >
                   Everyone
@@ -267,48 +271,48 @@ const styles = StyleSheet.create({
   },
   content: {
     flex: 1,
-    paddingHorizontal: 24,
-    paddingBottom: 40,
+    paddingHorizontal: scale(24),
+    paddingBottom: verticalScale(40),
     justifyContent: "space-between",
   },
   progressContainer: {
-    marginBottom: 32,
+    marginBottom: verticalScale(32),
   },
   header: {
-    marginBottom: 48,
+    marginBottom: verticalScale(48),
   },
   title: {
-    fontSize: 36,
+    fontSize: scale(36),
     fontWeight: "600",
     color: OnboardingColors.text.primary,
-    marginBottom: 12,
+    marginBottom: verticalScale(12),
     textAlign: "left",
-    lineHeight: 44,
+    lineHeight: scale(44),
     fontFamily: "Fraunces",
   },
   subtitle: {
-    fontSize: 16,
+    fontSize: scale(16),
     color: OnboardingColors.text.secondary,
     textAlign: "left",
-    lineHeight: 24,
+    lineHeight: scale(26),
     maxWidth: "85%",
-    fontFamily: "Fraunces",
-    fontWeight: "300",
+    fontFamily: "Montserrat",
+    // fontWeight: "300",
   },
   optionsContainer: {
     flex: 1,
     justifyContent: "flex-start",
-    paddingTop: 20,
-    minHeight: 120,
+    paddingTop: verticalScale(20),
+    minHeight: verticalScale(120),
   },
   option: {
     backgroundColor: OnboardingColors.background.input,
-    borderRadius: 20,
+    borderRadius: scale(20),
     borderWidth: 2,
     borderColor: OnboardingColors.border.input,
-    paddingVertical: 20,
-    paddingHorizontal: 24,
-    marginBottom: 16,
+    paddingVertical: verticalScale(20),
+    paddingHorizontal: scale(24),
+    marginBottom: verticalScale(16),
     flexDirection: "row",
     alignItems: "center",
     shadowColor: OnboardingColors.shadow.primary,
@@ -326,10 +330,10 @@ const styles = StyleSheet.create({
     elevation: OnboardingColors.shadow.elevation.light,
   },
   optionText: {
-    fontSize: 18,
+    fontSize: scale(18),
     fontWeight: "300",
     color: OnboardingColors.text.secondary,
-    marginLeft: 16,
+    marginLeft: scale(16),
     fontFamily: "Fraunces",
   },
   optionTextSelected: {
@@ -339,8 +343,8 @@ const styles = StyleSheet.create({
   },
   buttonContainer: {
     alignItems: "flex-end",
-    paddingTop: 16,
-    marginBottom: 40,
+    paddingTop: verticalScale(16),
+    marginBottom: verticalScale(40),
   },
   buttonWrapper: {
     shadowColor: OnboardingColors.shadow.primary,
@@ -349,7 +353,7 @@ const styles = StyleSheet.create({
     elevation: OnboardingColors.shadow.elevation.medium,
   },
   button: {
-    borderRadius: 20,
+    borderRadius: scale(20),
     overflow: "hidden",
   },
   buttonDisabled: {
@@ -359,14 +363,14 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "center",
-    paddingVertical: 10,
-    paddingHorizontal: 22,
+    paddingVertical: verticalScale(10),
+    paddingHorizontal: scale(22),
   },
   buttonText: {
-    fontSize: 18,
+    fontSize: scale(18),
     fontWeight: "700",
     color: OnboardingColors.text.button,
-    marginRight: 8,
+    marginRight: scale(8),
     fontFamily: "Fraunces",
   },
   buttonTextDisabled: {
@@ -375,9 +379,9 @@ const styles = StyleSheet.create({
     fontFamily: "Fraunces",
   },
   changeLaterText: {
-    fontSize: 14,
+    fontSize: scale(14),
     color: OnboardingColors.text.changeLater,
-    marginTop: 8,
+    marginTop: verticalScale(8),
     fontStyle: "italic",
     fontFamily: "Fraunces",
     fontWeight: "300",

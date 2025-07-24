@@ -21,7 +21,7 @@ export default function ProfileHeader() {
     >
       <View style={styles.logoContainer}>
         <Image
-          source={require("../../assets/images/pink.png")}
+          source={require("../../assets/images/pink1.png")}
           style={styles.logo}
         />
         <Text style={styles.logoText}>June</Text>

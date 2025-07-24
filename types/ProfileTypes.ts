@@ -49,7 +49,6 @@ export interface EditProfileData {
   
   // Demographics
   gender: string;
-  pronouns: string;
   lookingFor: string;
   ethnicity: string;
   

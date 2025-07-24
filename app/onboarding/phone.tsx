@@ -27,6 +27,7 @@ import ProgressBar from "../components/ProgressBar";
 import { useOnboarding } from "../contexts/OnboardingContext";
 
 const { width, height } = Dimensions.get("window");
+const scale = width / 375; // base iPhone width for scaling
 
 // Default country (United States)
 const defaultCountry: Country = {
@@ -161,7 +162,6 @@ export default function PhoneScreen() {
     setPhone("");
     setIsValid(false);
     checkIconOpacity.value = withTiming(0, { duration: 200 });
-    console.log("🌍 Selected country:", country.name, country.callingCode);
   };
 
   const sendOTP = async () => {
@@ -169,11 +169,6 @@ export default function PhoneScreen() {
 
     const cleanPhone = phone.replace(/\D/g, "");
     const fullPhoneNumber = `${selectedCountry.callingCode}${cleanPhone}`;
-
-    // Console log the phone number when user clicks Next/Send Code
-    console.log("📱 Sending OTP to phone number:", fullPhoneNumber);
-    console.log("📱 Selected country:", selectedCountry.name);
-    console.log("📱 Formatted display phone:", phone);
 
     setIsLoading(true);
     setError(null);
@@ -205,8 +200,6 @@ export default function PhoneScreen() {
         return;
       }
 
-      console.log("✅ OTP sent successfully");
-      // Save phone to context before proceeding
       savePhoneToContext(phone, selectedCountry);
 
       // Animate to verification screen
@@ -246,7 +239,10 @@ export default function PhoneScreen() {
         // Mark phone as verified in context
         setPhoneVerified();
 
-        router.push("/celebrate");
+        // Log everything we know about the user before navigating to /access
+        console.log("[ONBOARDING DATA]", onboardingData);
+
+        router.push("/access");
       }
     } catch (err: any) {
       console.error("Unexpected verification error:", err);
@@ -330,6 +326,18 @@ export default function PhoneScreen() {
   const verificationSlideStyle = useAnimatedStyle(() => ({
     transform: [{ translateX: verificationSlideX.value }],
   }));
+
+  // Dedicated style for verification view to move content up
+  const verificationViewStyle = {
+    justifyContent: "flex-start" as const,
+    paddingTop: height * 0.0005, // move content up, adjust as needed
+  };
+
+  // Custom style for button container in verification view
+  const verificationButtonContainerStyle = {
+    paddingTop: -(height * 1), // much less space above button
+    alignItems: "flex-end" as const,
+  };
 
   // Animate elements on mount with staggered timing
   React.useEffect(() => {
@@ -470,7 +478,11 @@ export default function PhoneScreen() {
                 style={[styles.slideContainer, verificationSlideStyle]}
               >
                 <Animated.View
-                  style={[styles.inputContainer, animatedInputStyle]}
+                  style={[
+                    styles.inputContainer,
+                    verificationViewStyle,
+                    animatedInputStyle,
+                  ]}
                 >
                   {/* Error Message - Above Input */}
                   {showVerification && error && (
@@ -483,7 +495,7 @@ export default function PhoneScreen() {
                     <View style={styles.verificationIcon}>
                       <Ionicons
                         name="key"
-                        size={20}
+                        size={20 * scale}
                         color={OnboardingColors.icon.tertiary}
                       />
                     </View>
@@ -508,7 +520,7 @@ export default function PhoneScreen() {
                       >
                         <Ionicons
                           name="checkmark-circle"
-                          size={24}
+                          size={24 * scale}
                           color={OnboardingColors.icon.checkmark}
                         />
                       </Animated.View>
@@ -532,7 +544,13 @@ export default function PhoneScreen() {
             </View>
 
             {/* Next Button - Bottom Right (F-Pattern End) */}
-            <View style={styles.buttonContainer}>
+            <View
+              style={
+                showVerification
+                  ? [styles.buttonContainer, verificationButtonContainerStyle]
+                  : styles.buttonContainer
+              }
+            >
               <Animated.View
                 style={[styles.buttonWrapper, animatedButtonStyle]}
               >
@@ -618,55 +636,55 @@ const styles = StyleSheet.create({
   },
   content: {
     flex: 1,
-    paddingHorizontal: 24,
-    paddingBottom: 40,
+    paddingHorizontal: width * 0.06, // ~24 on 375px
+    paddingBottom: height * 0.05, // ~40 on 800px
     justifyContent: "space-between",
   },
   progressContainer: {
-    marginBottom: 32,
+    marginBottom: height * 0.04, // ~32
   },
   progressBackground: {
-    height: 4,
+    height: 4 * scale,
     backgroundColor: OnboardingColors.background.progressBackground,
-    borderRadius: 2,
-    marginBottom: 8,
+    borderRadius: 2 * scale,
+    marginBottom: 8 * scale,
   },
   progressFill: {
-    height: 4,
+    height: 4 * scale,
     backgroundColor: OnboardingColors.background.progressFill,
-    borderRadius: 2,
+    borderRadius: 2 * scale,
   },
   progressText: {
-    fontSize: 14,
+    fontSize: 14 * scale,
     color: OnboardingColors.text.progress,
     textAlign: "right",
     fontWeight: "500",
   },
   header: {
-    marginBottom: 48,
+    marginBottom: height * 0.06, // ~48
   },
   title: {
-    fontSize: 36,
+    fontSize: 36 * scale,
     fontWeight: "600",
     color: OnboardingColors.text.primary,
-    marginBottom: 12,
+    marginBottom: 12 * scale,
     textAlign: "left",
-    lineHeight: 44,
+    lineHeight: 44 * scale,
     fontFamily: "Fraunces",
   },
   subtitle: {
-    fontSize: 14,
+    fontSize: 14 * scale,
     color: OnboardingColors.text.secondary,
     textAlign: "left",
-    lineHeight: 24,
+    lineHeight: 24 * scale,
     maxWidth: "85%",
     fontFamily: "Montserrat",
   },
   editButton: {
-    marginTop: 12,
+    marginTop: 12 * scale,
   },
   editButtonText: {
-    fontSize: 16,
+    fontSize: 16 * scale,
     color: OnboardingColors.text.editButton,
     textDecorationLine: "underline",
     fontWeight: "600",
@@ -674,8 +692,8 @@ const styles = StyleSheet.create({
   inputContainer: {
     flex: 1,
     justifyContent: "flex-start",
-    paddingTop: 20,
-    minHeight: 120,
+    paddingTop: height * 0.025, // ~20
+    minHeight: height * 0.15, // ~120
   },
   slideContainer: {
     position: "absolute",
@@ -684,59 +702,61 @@ const styles = StyleSheet.create({
   },
   inputWrapper: {
     backgroundColor: OnboardingColors.background.input,
-    borderRadius: 20,
-    borderWidth: 2,
+    borderRadius: 20 * scale,
+    borderWidth: 2 * scale,
     borderColor: OnboardingColors.border.input,
     flexDirection: "row",
     alignItems: "center",
-    paddingHorizontal: 24,
-    paddingVertical: 20,
-    minHeight: 60,
+    paddingHorizontal: width * 0.06, // ~24
+    paddingVertical: height * 0.025, // ~20
+    minHeight: height * 0.075, // ~60
     shadowColor: OnboardingColors.shadow.primary,
     shadowOffset: OnboardingColors.shadow.offset,
     shadowOpacity: OnboardingColors.shadow.opacity.light,
     shadowRadius: OnboardingColors.shadow.radius.medium,
     elevation: OnboardingColors.shadow.elevation.light,
-    maxWidth: "90%",
+    width: "100%",
+    maxWidth: 500,
+    alignSelf: "center",
   },
   countryCode: {
     flexDirection: "row",
     alignItems: "center",
-    marginRight: 12,
-    paddingRight: 12,
-    borderRightWidth: 1,
+    marginRight: 12 * scale,
+    paddingRight: 12 * scale,
+    borderRightWidth: 1 * scale,
     borderRightColor: OnboardingColors.border.countryCode,
-    paddingVertical: 4,
+    paddingVertical: 4 * scale,
   },
   countryFlag: {
-    fontSize: 20,
-    marginRight: 6,
+    fontSize: 20 * scale,
+    marginRight: 6 * scale,
   },
   countryCodeText: {
-    fontSize: 16,
+    fontSize: 16 * scale,
     color: OnboardingColors.text.countryCode,
     fontWeight: "600",
     fontFamily: "Montserrat",
-    marginRight: 4,
+    marginRight: 4 * scale,
   },
   input: {
     flex: 1,
-    fontSize: 18,
+    fontSize: 18 * scale,
     color: OnboardingColors.text.primary,
     fontFamily: "Montserrat",
   },
   checkIcon: {
-    marginLeft: 12,
+    marginLeft: 12 * scale,
   },
   verificationIcon: {
-    marginRight: 12,
+    marginRight: 12 * scale,
   },
   resendButton: {
-    marginTop: 16,
+    marginTop: 16 * scale,
     alignSelf: "flex-start",
   },
   resendButtonText: {
-    fontSize: 16,
+    fontSize: 16 * scale,
     color: OnboardingColors.text.editButton,
     textDecorationLine: "underline",
     fontWeight: "500",
@@ -744,25 +764,25 @@ const styles = StyleSheet.create({
   },
   errorContainer: {
     marginTop: 0,
-    marginBottom: 16,
-    paddingHorizontal: 16,
-    paddingVertical: 12,
+    marginBottom: 16 * scale,
+    paddingHorizontal: 16 * scale,
+    paddingVertical: 12 * scale,
     backgroundColor: "rgba(239, 68, 68, 0.08)",
-    borderRadius: 12,
-    borderWidth: 1,
+    borderRadius: 12 * scale,
+    borderWidth: 1 * scale,
     borderColor: "rgba(239, 68, 68, 0.2)",
   },
   errorText: {
-    fontSize: 14,
+    fontSize: 14 * scale,
     color: "#DC2626",
     textAlign: "center",
     fontFamily: "Montserrat",
     fontWeight: "500",
-    lineHeight: 20,
+    lineHeight: 20 * scale,
   },
   buttonContainer: {
     alignItems: "flex-end",
-    paddingTop: 16,
+    paddingTop: 16 * scale,
     marginBottom: 0,
   },
   buttonWrapper: {
@@ -772,7 +792,7 @@ const styles = StyleSheet.create({
     elevation: OnboardingColors.shadow.elevation.medium,
   },
   button: {
-    borderRadius: 20,
+    borderRadius: 20 * scale,
     overflow: "hidden",
   },
   buttonDisabled: {
@@ -782,14 +802,14 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "center",
-    paddingVertical: 10,
-    paddingHorizontal: 22,
+    paddingVertical: 10 * scale,
+    paddingHorizontal: 22 * scale,
   },
   buttonText: {
-    fontSize: 18,
+    fontSize: 18 * scale,
     fontWeight: "700",
     color: OnboardingColors.text.button,
-    marginRight: 8,
+    marginRight: 8 * scale,
     fontFamily: "Fraunces",
   },
   buttonTextDisabled: {

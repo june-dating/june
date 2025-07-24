@@ -22,6 +22,13 @@ import ProgressBar from "../components/ProgressBar";
 import { useOnboarding } from "../contexts/OnboardingContext";
 
 const { width, height } = Dimensions.get("window");
+// Responsive scaling utility
+const guidelineBaseWidth = 390; // iPhone 14 width
+const guidelineBaseHeight = 844; // iPhone 14 height
+const scale = (size: number) => (width / guidelineBaseWidth) * size;
+const verticalScale = (size: number) => (height / guidelineBaseHeight) * size;
+const moderateScale = (size: number, factor = 0.5) =>
+  size + (scale(size) - size) * factor;
 
 type SocialPlatform = "instagram" | "twitter" | "linkedin";
 
@@ -62,6 +69,7 @@ export default function SocialsScreen() {
   const [isAnyValid, setIsAnyValid] = useState(true);
   const [keyboardHeight, setKeyboardHeight] = useState(0);
   const [isKeyboardVisible, setIsKeyboardVisible] = useState(false);
+  const [showInstagramWarning, setShowInstagramWarning] = useState(false);
 
   // Refs for text inputs
   const inputRefs = useRef<Record<SocialPlatform, TextInput | null>>({
@@ -214,15 +222,18 @@ export default function SocialsScreen() {
   };
 
   const handleNext = () => {
-    if (isAnyValid) {
-      // Ensure all data is saved before navigation
-      Object.entries(socialData).forEach(([platform, data]) => {
-        if (data.isValid) {
-          saveSocialsToContext(platform as SocialPlatform, data.username);
-        }
-      });
-      router.push("/onboarding/phone");
+    if (!socialData.instagram.username.trim()) {
+      setShowInstagramWarning(true);
+      return;
     }
+    setShowInstagramWarning(false);
+    // Ensure all data is saved before navigation
+    Object.entries(socialData).forEach(([platform, data]) => {
+      if (data.isValid) {
+        saveSocialsToContext(platform as SocialPlatform, data.username);
+      }
+    });
+    router.push("/onboarding/phone");
   };
 
   const dismissKeyboard = () => {
@@ -389,7 +400,10 @@ export default function SocialsScreen() {
                               onFocus={() => handleInputFocus(platform)}
                               onBlur={() => handleInputBlur(platform)}
                               placeholder={
-                                platform === "twitter" ? "twitter/x" : platform
+                                platform === "instagram"
+                                  ? "Instagram*"
+                                  : platform.charAt(0).toUpperCase() +
+                                    platform.slice(1)
                               }
                               placeholderTextColor={
                                 OnboardingColors.text.quaternary
@@ -400,7 +414,7 @@ export default function SocialsScreen() {
                               onSubmitEditing={dismissKeyboard}
                             />
                           </View>
-                          {platform === "instagram" && (
+                          {platform === "instagram" && false && (
                             <Text
                               style={{
                                 color: OnboardingColors.text.quaternary,
@@ -430,6 +444,22 @@ export default function SocialsScreen() {
 
                 {/* Spacer for keyboard */}
                 <View style={{ height: 100 }} />
+
+                {/* Instagram required warning */}
+                {showInstagramWarning && (
+                  <Text
+                    style={{
+                      color: "red",
+                      fontSize: 14,
+                      textAlign: "center",
+                      marginTop: -80,
+                      marginBottom: 20,
+                      fontFamily: "Montserrat",
+                    }}
+                  >
+                    Instagram is required
+                  </Text>
+                )}
               </ScrollView>
 
               {/* Next Button - Fixed at bottom */}
@@ -498,8 +528,8 @@ const styles = StyleSheet.create({
   },
   content: {
     flex: 1,
-    paddingHorizontal: 24,
-    paddingBottom: 40,
+    paddingHorizontal: scale(24),
+    paddingBottom: verticalScale(40),
     justifyContent: "space-between",
   },
   scrollView: {
@@ -509,41 +539,41 @@ const styles = StyleSheet.create({
     flexGrow: 1,
   },
   progressContainer: {
-    marginBottom: 32,
+    marginBottom: verticalScale(32),
   },
   header: {
-    marginBottom: 32,
+    marginBottom: verticalScale(32),
   },
   title: {
-    fontSize: 36,
+    fontSize: scale(36),
     fontWeight: "600",
     color: OnboardingColors.text.primary,
-    marginBottom: 12,
+    marginBottom: verticalScale(12),
     textAlign: "left",
-    lineHeight: 44,
+    lineHeight: scale(44),
     fontFamily: "Fraunces",
   },
   subtitle: {
-    fontSize: 14,
+    fontSize: scale(14),
     color: OnboardingColors.text.secondary,
     textAlign: "left",
-    lineHeight: 24,
+    lineHeight: scale(24),
     maxWidth: "85%",
     fontFamily: "Montserrat",
     // fontWeight: "300",
   },
   platformsContainer: {
-    paddingTop: 30,
-    minHeight: 200,
+    paddingTop: verticalScale(30),
+    minHeight: verticalScale(200),
   },
   platformCard: {
     backgroundColor: OnboardingColors.background.platformCard,
-    borderRadius: 20,
+    borderRadius: scale(20),
     borderWidth: 2,
     borderColor: OnboardingColors.border.input,
-    paddingVertical: 16,
-    paddingHorizontal: 20,
-    marginBottom: 16,
+    paddingVertical: verticalScale(16),
+    paddingHorizontal: scale(20),
+    marginBottom: verticalScale(16),
     flexDirection: "row",
     alignItems: "center",
     shadowColor: OnboardingColors.shadow.primary,
@@ -561,13 +591,13 @@ const styles = StyleSheet.create({
     elevation: OnboardingColors.shadow.elevation.light,
   },
   platformIconContainer: {
-    width: 36,
-    height: 36,
-    borderRadius: 10,
+    width: scale(36),
+    height: scale(36),
+    borderRadius: scale(10),
     backgroundColor: OnboardingColors.background.platformIconContainer,
     alignItems: "center",
     justifyContent: "center",
-    marginRight: 16,
+    marginRight: scale(16),
   },
   platformIconContainerSelected: {
     backgroundColor: "transparent",
@@ -576,7 +606,7 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   platformInput: {
-    fontSize: 16,
+    fontSize: scale(16),
     color: OnboardingColors.text.platformInput,
     fontFamily: "Montserrat",
   },
@@ -585,12 +615,12 @@ const styles = StyleSheet.create({
     fontFamily: "Montserrat",
   },
   validationIcon: {
-    marginLeft: 12,
+    marginLeft: scale(12),
   },
   buttonContainer: {
     alignItems: "flex-end",
-    paddingTop: 16,
-    marginBottom: 40,
+    paddingTop: verticalScale(16),
+    marginBottom: verticalScale(40),
   },
   buttonWrapper: {
     shadowColor: OnboardingColors.shadow.primary,
@@ -599,7 +629,7 @@ const styles = StyleSheet.create({
     elevation: OnboardingColors.shadow.elevation.medium,
   },
   button: {
-    borderRadius: 20,
+    borderRadius: scale(20),
     overflow: "hidden",
   },
   buttonDisabled: {
@@ -609,14 +639,14 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "center",
-    paddingVertical: 10,
-    paddingHorizontal: 22,
+    paddingVertical: verticalScale(10),
+    paddingHorizontal: scale(22),
   },
   buttonText: {
-    fontSize: 18,
+    fontSize: scale(18),
     fontWeight: "700",
     color: OnboardingColors.text.button,
-    marginRight: 8,
+    marginRight: scale(8),
     fontFamily: "Fraunces",
   },
   buttonTextDisabled: {

@@ -9,7 +9,6 @@ import {
   StatusBar,
   StyleSheet,
   Text,
-  TextInput,
   TouchableOpacity,
   View,
 } from "react-native";
@@ -24,8 +23,15 @@ import ProgressBar from "../components/ProgressBar";
 import { useOnboarding } from "../contexts/OnboardingContext";
 
 const { width, height } = Dimensions.get("window");
+// Responsive scaling utility
+const guidelineBaseWidth = 390; // iPhone 14 width
+const guidelineBaseHeight = 844; // iPhone 14 height
+const scale = (size: number) => (width / guidelineBaseWidth) * size;
+const verticalScale = (size: number) => (height / guidelineBaseHeight) * size;
+const moderateScale = (size: number, factor = 0.5) =>
+  size + (scale(size) - size) * factor;
 
-type GenderOption = "male" | "female" | "other";
+type GenderOption = "male" | "female" | "everyone";
 
 export default function GenderScreen() {
   const insets = useSafeAreaInsets();
@@ -33,13 +39,11 @@ export default function GenderScreen() {
 
   // Initialize from context if available
   const [selectedGender, setSelectedGender] = useState<GenderOption | null>(
-    onboardingData.gender || null
-  );
-  const [customGender, setCustomGender] = useState(
-    onboardingData.custom_gender_identity || ""
-  );
-  const [showCustomInput, setShowCustomInput] = useState(
-    onboardingData.gender === "other"
+    onboardingData.gender === "male" ||
+      onboardingData.gender === "female" ||
+      onboardingData.gender === "everyone"
+      ? onboardingData.gender
+      : null
   );
 
   const buttonScale = useSharedValue(1);
@@ -48,54 +52,24 @@ export default function GenderScreen() {
   const titleOpacity = useSharedValue(0);
   const subtitleOpacity = useSharedValue(0);
 
-  const saveGenderToContext = (
-    gender: GenderOption,
-    customGenderText?: string
-  ) => {
+  const saveGenderToContext = (gender: GenderOption) => {
     const data: any = { gender };
-    if (gender === "other" && customGenderText) {
-      data.custom_gender_identity = customGenderText.trim();
-    } else {
-      // Clear custom gender if not "other"
-      data.custom_gender_identity = undefined;
-    }
     updateOnboardingData(data);
   };
 
   const handleGenderSelect = (gender: GenderOption) => {
     setSelectedGender(gender);
-    if (gender === "other") {
-      setShowCustomInput(true);
-      setCustomGender(onboardingData.custom_gender_identity || "");
-    } else {
-      setShowCustomInput(false);
-      setCustomGender("");
-      // Save to context and auto-navigate for male/female selections
-      saveGenderToContext(gender);
-      router.push("/onboarding/looking-for");
-    }
+    // Save to context and auto-navigate for male/female selections
+    saveGenderToContext(gender);
+    router.push("/onboarding/looking-for");
   };
 
-  const handleCustomGenderChange = (text: string) => {
-    setCustomGender(text);
-    // Save to context if valid
-    if (text.trim().length > 0) {
-      saveGenderToContext("other", text);
-    }
-  };
-
-  const isValid =
-    selectedGender &&
-    (selectedGender !== "other" || customGender.trim().length > 0);
+  const isValid = !!selectedGender;
 
   const handleNext = () => {
-    if (isValid) {
+    if (isValid && selectedGender) {
       // Ensure data is saved before navigation
-      if (selectedGender === "other") {
-        saveGenderToContext("other", customGender);
-      } else if (selectedGender) {
-        saveGenderToContext(selectedGender);
-      }
+      saveGenderToContext(selectedGender);
       router.push("/onboarding/looking-for");
     }
   };
@@ -157,7 +131,7 @@ export default function GenderScreen() {
               <Text style={styles.title}>What's your gender?</Text>
               <Animated.View style={animatedSubtitleStyle}>
                 <Text style={styles.subtitle}>
-                  This helps us find better matches for you
+                  This helps us know you better
                 </Text>
               </Animated.View>
             </Animated.View>
@@ -223,16 +197,16 @@ export default function GenderScreen() {
               <TouchableOpacity
                 style={[
                   styles.genderOption,
-                  selectedGender === "other" && styles.genderOptionSelected,
+                  selectedGender === "everyone" && styles.genderOptionSelected,
                 ]}
-                onPress={() => handleGenderSelect("other")}
+                onPress={() => handleGenderSelect("everyone")}
                 activeOpacity={0.8}
               >
                 <Ionicons
-                  name="person"
+                  name="people"
                   size={24}
                   color={
-                    selectedGender === "other"
+                    selectedGender === "everyone"
                       ? OnboardingColors.icon.primary
                       : OnboardingColors.icon.secondary
                   }
@@ -240,33 +214,13 @@ export default function GenderScreen() {
                 <Text
                   style={[
                     styles.genderText,
-                    selectedGender === "other" && styles.genderTextSelected,
+                    selectedGender === "everyone" && styles.genderTextSelected,
                   ]}
                 >
-                  Other
+                  Everyone
                 </Text>
               </TouchableOpacity>
             </Animated.View>
-
-            {/* Custom Input - Positioned to be keyboard-friendly */}
-            {showCustomInput && (
-              <Animated.View
-                style={[styles.customInputContainer, animatedInputStyle]}
-              >
-                <View style={styles.inputWrapper}>
-                  <TextInput
-                    style={styles.input}
-                    value={customGender}
-                    onChangeText={handleCustomGenderChange}
-                    placeholder="Enter your gender identity"
-                    placeholderTextColor={OnboardingColors.text.tertiary}
-                    autoFocus
-                    autoCapitalize="words"
-                    returnKeyType="done"
-                  />
-                </View>
-              </Animated.View>
-            )}
 
             {/* Next Button - Bottom Right (F-Pattern End) */}
             <View style={styles.buttonContainer}>
@@ -327,30 +281,30 @@ const styles = StyleSheet.create({
   },
   content: {
     flex: 1,
-    paddingHorizontal: 24,
-    paddingBottom: 40,
+    paddingHorizontal: scale(24),
+    paddingBottom: verticalScale(40),
     justifyContent: "space-between",
   },
   progressContainer: {
-    marginBottom: 32,
+    marginBottom: verticalScale(32),
   },
   header: {
-    marginBottom: 48,
+    marginBottom: verticalScale(48),
   },
   title: {
-    fontSize: 36,
+    fontSize: scale(36),
     fontWeight: "600",
     color: OnboardingColors.text.primary,
-    marginBottom: 12,
+    marginBottom: verticalScale(12),
     textAlign: "left",
-    lineHeight: 44,
+    lineHeight: scale(44),
     fontFamily: "Fraunces",
   },
   subtitle: {
-    fontSize: 16,
+    fontSize: scale(16),
     color: OnboardingColors.text.secondary,
     textAlign: "left",
-    lineHeight: 24,
+    lineHeight: scale(24),
     maxWidth: "85%",
     fontFamily: "Montserrat",
     // fontWeight: "300",
@@ -358,17 +312,17 @@ const styles = StyleSheet.create({
   optionsContainer: {
     flex: 1,
     justifyContent: "flex-start",
-    paddingTop: 40,
-    minHeight: 120,
+    paddingTop: verticalScale(40),
+    minHeight: verticalScale(120),
   },
   genderOption: {
     backgroundColor: OnboardingColors.background.input,
-    borderRadius: 20,
+    borderRadius: scale(20),
     borderWidth: 2,
     borderColor: OnboardingColors.border.input,
-    paddingVertical: 20,
-    paddingHorizontal: 24,
-    marginBottom: 16,
+    paddingVertical: verticalScale(20),
+    paddingHorizontal: scale(24),
+    marginBottom: verticalScale(16),
     flexDirection: "row",
     alignItems: "center",
     shadowColor: OnboardingColors.shadow.primary,
@@ -386,9 +340,9 @@ const styles = StyleSheet.create({
     elevation: OnboardingColors.shadow.elevation.light,
   },
   genderText: {
-    fontSize: 18,
+    fontSize: scale(18),
     color: OnboardingColors.text.secondary,
-    marginLeft: 16,
+    marginLeft: scale(16),
     fontFamily: "Montserrat",
   },
   genderTextSelected: {
@@ -397,16 +351,16 @@ const styles = StyleSheet.create({
     fontFamily: "Montserrat",
   },
   customInputContainer: {
-    marginTop: 8,
-    marginBottom: 20,
+    marginTop: verticalScale(8),
+    marginBottom: verticalScale(20),
   },
   inputWrapper: {
     backgroundColor: OnboardingColors.background.input,
-    borderRadius: 20,
+    borderRadius: scale(20),
     borderWidth: 2,
     borderColor: OnboardingColors.border.input,
-    paddingHorizontal: 24,
-    paddingVertical: 20,
+    paddingHorizontal: scale(24),
+    paddingVertical: verticalScale(20),
     shadowColor: OnboardingColors.shadow.primary,
     shadowOffset: OnboardingColors.shadow.offset,
     shadowOpacity: OnboardingColors.shadow.opacity.light,
@@ -415,15 +369,15 @@ const styles = StyleSheet.create({
     maxWidth: "90%",
   },
   input: {
-    fontSize: 18,
+    fontSize: scale(18),
     color: OnboardingColors.text.primary,
     fontWeight: "300",
     fontFamily: "Fraunces",
   },
   buttonContainer: {
     alignItems: "flex-end",
-    paddingTop: 16,
-    marginBottom: 40,
+    paddingTop: verticalScale(16),
+    marginBottom: verticalScale(40),
   },
   buttonWrapper: {
     shadowColor: OnboardingColors.shadow.primary,
@@ -432,7 +386,7 @@ const styles = StyleSheet.create({
     elevation: OnboardingColors.shadow.elevation.medium,
   },
   button: {
-    borderRadius: 20,
+    borderRadius: scale(20),
     overflow: "hidden",
   },
   buttonDisabled: {
@@ -442,14 +396,14 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "center",
-    paddingVertical: 10,
-    paddingHorizontal: 22,
+    paddingVertical: verticalScale(10),
+    paddingHorizontal: scale(22),
   },
   buttonText: {
-    fontSize: 18,
+    fontSize: scale(18),
     fontWeight: "700",
     color: OnboardingColors.text.button,
-    marginRight: 8,
+    marginRight: scale(8),
     fontFamily: "Fraunces",
   },
   buttonTextDisabled: {

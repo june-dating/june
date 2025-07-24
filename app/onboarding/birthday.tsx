@@ -29,6 +29,14 @@ import { useOnboarding } from "../contexts/OnboardingContext";
 
 const { width, height } = Dimensions.get("window");
 
+// Responsive scaling utility
+const guidelineBaseWidth = 390; // iPhone 14 width
+const guidelineBaseHeight = 844; // iPhone 14 height
+const scale = (size: number) => (width / guidelineBaseWidth) * size;
+const verticalScale = (size: number) => (height / guidelineBaseHeight) * size;
+const moderateScale = (size: number, factor = 0.5) =>
+  size + (scale(size) - size) * factor;
+
 export default function BirthdayScreen() {
   const insets = useSafeAreaInsets();
   const { onboardingData, updateOnboardingData } = useOnboarding();
@@ -129,7 +137,10 @@ export default function BirthdayScreen() {
     } else {
       setShowPicker(true);
       // Animate picker in with liquid glass effect
-      pickerHeight.value = withSpring(280, { damping: 20, stiffness: 200 });
+      pickerHeight.value = withSpring(verticalScale(240), {
+        damping: 20,
+        stiffness: 200,
+      }); // reduced height
       pickerOpacity.value = withTiming(1, { duration: 400 });
       pickerScale.value = withSpring(1, { damping: 20, stiffness: 200 });
       pickerBlur.value = withTiming(1, { duration: 300 });
@@ -234,7 +245,7 @@ export default function BirthdayScreen() {
               <Text style={styles.title}>When's your birthday?</Text>
               <Animated.View style={animatedSubtitleStyle}>
                 <Text style={styles.subtitle}>
-                  You must be between 18 and 99 years old
+                  We ask this to keep our platform safe.
                 </Text>
               </Animated.View>
             </Animated.View>
@@ -314,10 +325,10 @@ export default function BirthdayScreen() {
                         <Text style={styles.pickerTitle}>Select Birthday</Text>
                         <TouchableOpacity
                           onPress={handleDone}
-                          style={styles.headerButton}
-                          activeOpacity={0.7}
+                          style={styles.doneButtonBox}
+                          activeOpacity={0.8}
                         >
-                          <Text style={styles.headerButtonText}>Done</Text>
+                          <Text style={styles.doneButtonText}>Done</Text>
                         </TouchableOpacity>
                       </View>
 
@@ -411,30 +422,30 @@ const styles = StyleSheet.create({
   },
   content: {
     flex: 1,
-    paddingHorizontal: 24,
-    paddingBottom: 40,
+    paddingHorizontal: scale(24),
+    paddingBottom: verticalScale(40),
     justifyContent: "space-between",
   },
   progressContainer: {
-    marginBottom: 32,
+    marginBottom: verticalScale(32),
   },
   header: {
-    marginBottom: 48,
+    marginBottom: verticalScale(48),
   },
   title: {
-    fontSize: 36,
+    fontSize: scale(36),
     color: OnboardingColors.text.primary,
-    marginBottom: 12,
+    marginBottom: verticalScale(12),
     textAlign: "left",
-    lineHeight: 44,
+    lineHeight: scale(44),
     fontFamily: "Fraunces",
     fontWeight: "600",
   },
   subtitle: {
-    fontSize: 16,
+    fontSize: scale(16),
     color: OnboardingColors.text.secondary,
     textAlign: "left",
-    lineHeight: 24,
+    lineHeight: scale(24),
     maxWidth: "85%",
     fontFamily: "Montserrat",
     // fontWeight: "300",
@@ -442,22 +453,22 @@ const styles = StyleSheet.create({
   pickerSection: {
     flex: 1,
     justifyContent: "flex-start",
-    paddingTop: 20,
-    minHeight: 120,
+    paddingTop: verticalScale(20),
+    minHeight: verticalScale(120),
   },
   inputContainer: {
     marginBottom: 0,
   },
   inputWrapper: {
     backgroundColor: OnboardingColors.background.input,
-    borderRadius: 20,
+    borderRadius: scale(20),
     borderWidth: 2,
     borderColor: OnboardingColors.border.input,
     flexDirection: "row",
     alignItems: "center",
-    paddingHorizontal: 24,
-    paddingVertical: 20,
-    minHeight: 60,
+    paddingHorizontal: scale(24),
+    paddingVertical: verticalScale(20),
+    minHeight: verticalScale(60),
     shadowColor: OnboardingColors.shadow.primary,
     shadowOffset: OnboardingColors.shadow.offset,
     shadowOpacity: OnboardingColors.shadow.opacity.light,
@@ -470,26 +481,26 @@ const styles = StyleSheet.create({
     backgroundColor: OnboardingColors.background.inputActive,
   },
   inputIcon: {
-    marginRight: 12,
+    marginRight: scale(12),
   },
   inputText: {
     flex: 1,
-    fontSize: 18,
+    fontSize: scale(18),
     color: OnboardingColors.text.primary,
     fontWeight: "300",
     // fontFamily: "Fraunces",
   },
   checkIcon: {
-    marginLeft: 12,
+    marginLeft: scale(12),
   },
   pickerContainer: {
     overflow: "hidden",
-    marginTop: 12,
-    borderRadius: 24,
+    marginTop: verticalScale(12),
+    borderRadius: scale(24),
   },
   liquidGlassContainer: {
     position: "relative",
-    borderRadius: 24,
+    borderRadius: scale(24),
     overflow: "hidden",
   },
   blurBackdrop: {
@@ -498,11 +509,11 @@ const styles = StyleSheet.create({
     left: 0,
     right: 0,
     bottom: 0,
-    borderRadius: 24,
+    borderRadius: scale(24),
   },
   liquidGlass: {
     position: "relative",
-    borderRadius: 24,
+    borderRadius: scale(24),
     overflow: "hidden",
   },
   glassSurface: {
@@ -511,7 +522,7 @@ const styles = StyleSheet.create({
     left: 0,
     right: 0,
     bottom: 0,
-    borderRadius: 24,
+    borderRadius: scale(24),
   },
   glassGradient: {
     position: "absolute",
@@ -519,7 +530,7 @@ const styles = StyleSheet.create({
     left: 0,
     right: 0,
     bottom: 0,
-    borderRadius: 24,
+    borderRadius: scale(24),
   },
   glassBorder: {
     position: "absolute",
@@ -527,7 +538,7 @@ const styles = StyleSheet.create({
     left: 0,
     right: 0,
     bottom: 0,
-    borderRadius: 24,
+    borderRadius: scale(24),
     borderWidth: 1,
     borderColor: OnboardingColors.border.glassBorder,
   },
@@ -537,48 +548,66 @@ const styles = StyleSheet.create({
     left: 1,
     right: 1,
     bottom: 1,
-    borderRadius: 23,
+    borderRadius: scale(23),
     backgroundColor: OnboardingColors.background.innerGlow,
   },
   pickerHeader: {
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "center",
-    paddingHorizontal: 24,
-    paddingVertical: 16,
+    paddingHorizontal: scale(24),
+    paddingVertical: verticalScale(16),
     borderBottomWidth: 1,
     borderBottomColor: OnboardingColors.border.pickerHeader,
   },
   headerButton: {
-    paddingVertical: 8,
-    paddingHorizontal: 10,
-    borderRadius: 12,
+    paddingVertical: verticalScale(8),
+    paddingHorizontal: scale(10),
+    borderRadius: scale(12),
     backgroundColor: OnboardingColors.background.headerButton,
   },
   headerButtonText: {
     color: OnboardingColors.text.headerButton,
-    fontSize: 15,
+    fontSize: scale(15),
     fontWeight: "300",
+    fontFamily: "Fraunces",
+  },
+  // Custom style for the bigger Done button
+  doneButtonBox: {
+    paddingVertical: verticalScale(10),
+    paddingHorizontal: scale(12),
+    borderRadius: scale(16),
+    backgroundColor: OnboardingColors.background.buttonEnabled[0],
+    borderWidth: 1,
+    borderColor: OnboardingColors.border.input,
+    alignItems: "center",
+    justifyContent: "center",
+    marginLeft: scale(8),
+  },
+  doneButtonText: {
+    color: OnboardingColors.text.button,
+    fontSize: scale(15),
+    fontWeight: "600",
     fontFamily: "Fraunces",
   },
   pickerTitle: {
     color: OnboardingColors.text.pickerTitle,
-    fontSize: 17,
+    fontSize: scale(17),
     fontWeight: "600",
     fontFamily: "Fraunces",
   },
   datePickerContainer: {
-    paddingHorizontal: 16,
-    paddingVertical: 8,
+    paddingHorizontal: scale(16),
+    paddingVertical: verticalScale(8),
   },
   datePicker: {
     backgroundColor: "transparent",
-    height: 200,
+    height: verticalScale(180),
   },
   buttonContainer: {
     alignItems: "flex-end",
-    paddingTop: 16,
-    marginBottom: 40,
+    paddingTop: verticalScale(16),
+    marginBottom: verticalScale(40),
   },
   buttonWrapper: {
     shadowColor: OnboardingColors.shadow.primary,
@@ -587,7 +616,7 @@ const styles = StyleSheet.create({
     elevation: OnboardingColors.shadow.elevation.medium,
   },
   button: {
-    borderRadius: 20,
+    borderRadius: scale(20),
     overflow: "hidden",
   },
   buttonDisabled: {
@@ -597,14 +626,14 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "center",
-    paddingVertical: 10,
-    paddingHorizontal: 22,
+    paddingVertical: verticalScale(10),
+    paddingHorizontal: scale(22),
   },
   buttonText: {
-    fontSize: 18,
+    fontSize: scale(18),
     fontWeight: "700",
     color: OnboardingColors.text.button,
-    marginRight: 8,
+    marginRight: scale(8),
     fontFamily: "Fraunces",
   },
   buttonTextDisabled: {

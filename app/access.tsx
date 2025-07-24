@@ -35,7 +35,7 @@ export default function AccessScreen() {
 
   const handleGetAccess = () => {
     try {
-      router.push("/juneconvo");
+      router.push("/celebrate");
     } catch (error) {
       console.error("Navigation error:", error);
       // Fallback navigation
