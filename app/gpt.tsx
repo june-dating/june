@@ -290,23 +290,35 @@ export default function GPTScreen() {
 
   const copyPromptAndOpenGPT = async () => {
     try {
-      await Clipboard.setString(GPT_PROMPT);
-      setIsCopied(true);
-      setTimeout(() => setIsCopied(false), 5000); // Changed to 10000ms (10 seconds)
-      // Try to open ChatGPT app or website
-      try {
-        const chatGPTAppURL = "com.openai.chatgpt://";
-        const canOpenApp = await Linking.canOpenURL(chatGPTAppURL);
-        if (canOpenApp) {
-          await Linking.openURL(chatGPTAppURL);
-        } else {
-          await Linking.openURL("https://chatgpt.com");
+      // Try best-known ChatGPT app schemes in order:
+      // 1. chatgpt:// (iOS / Android)
+      // 2. com.openai.chatgpt:// (as per some app manifests)
+      // 3. openai:// (rare, but exists)
+      // 4. Universal Link (iOS test)
+      const schemes = [
+        "chatgpt://",
+        "com.openai.chatgpt://",
+        "openai://",
+        // On iOS this opens the app, not web, if installed:
+        "https://chat.openai.com",
+      ];
+
+      let opened = false;
+      for (const scheme of schemes) {
+        const can = await Linking.canOpenURL(scheme);
+        if (can) {
+          await Linking.openURL(scheme);
+          opened = true;
+          break;
         }
-      } catch (error) {
+      }
+      // If none worked, fallback to regular web
+      if (!opened) {
         await Linking.openURL("https://chatgpt.com");
       }
-    } catch (error) {
-      Alert.alert("Error", "Failed to copy text to clipboard");
+    } catch (err) {
+      Alert.alert("Error", "Failed to open ChatGPT app.");
+      console.log(err);
     }
   };
 
