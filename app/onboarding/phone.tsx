@@ -176,6 +176,11 @@ export default function PhoneScreen() {
     try {
       const { error } = await supabase.auth.signInWithOtp({
         phone: fullPhoneNumber,
+        options: {
+          data: onboardingData.full_name
+            ? { displayName: onboardingData.full_name }
+            : undefined,
+        },
       });
 
       if (error) {
@@ -236,11 +241,52 @@ export default function PhoneScreen() {
       }
 
       if (data.user) {
-        // Mark phone as verified in context
-        setPhoneVerified();
+        // Mark phone as verified in context and set created_at
+        const createdAt = new Date().toISOString();
+        updateOnboardingData({ phone_verified: true, created_at: createdAt });
 
-        // Log everything we know about the user before navigating to /access
-        console.log("[ONBOARDING DATA]", onboardingData);
+        // Only upsert if phone is verified
+        if (onboardingData && onboardingData.phone_number) {
+          const userProfile = {
+            id: data.user.id,
+            full_name: onboardingData.full_name || null,
+            birth_date: onboardingData.birth_date || null,
+            gender: onboardingData.gender || null,
+            looking_for: onboardingData.looking_for || null,
+            instagram_username: onboardingData.instagram_username || null,
+            twitter_username: onboardingData.twitter_username || null,
+            linkedin_username: onboardingData.linkedin_username || null,
+            phone_number: onboardingData.phone_number || null,
+            phone_verified: true,
+            access_code: onboardingData.access_code || null,
+            created_at: createdAt,
+          };
+
+          const { error: upsertError } = await supabase
+            .from("user_profiles")
+            .upsert([userProfile], { onConflict: "id" });
+
+          if (upsertError) {
+            console.error("Failed to upsert user profile:", upsertError);
+            // Optionally, you can setError(upsertError.message) here
+          }
+        }
+
+        // Log everything we know about the user after updating context
+        setTimeout(() => {
+          console.log(
+            "[ONBOARDING DATA]",
+            JSON.stringify(
+              {
+                ...onboardingData,
+                phone_verified: true,
+                created_at: createdAt,
+              },
+              null,
+              2
+            )
+          );
+        }, 0);
 
         router.push("/access");
       }

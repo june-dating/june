@@ -85,10 +85,18 @@ export default function BirthdayScreen() {
     return exactAge >= 18 && exactAge <= 99;
   };
 
+  // Helper to get YYYY-MM-DD from a Date in local time
+  const getLocalDateString = (date: Date) => {
+    const year = date.getFullYear();
+    const month = (date.getMonth() + 1).toString().padStart(2, "0");
+    const day = date.getDate().toString().padStart(2, "0");
+    return `${year}-${month}-${day}`;
+  };
+
   const saveBirthdayToContext = (date: Date) => {
-    // Save in ISO format (YYYY-MM-DD) for database compatibility
-    const isoDateString = date.toISOString().split("T")[0];
-    updateOnboardingData({ birth_date: isoDateString });
+    // Save in YYYY-MM-DD (local) format for database compatibility
+    const localDateString = getLocalDateString(date);
+    updateOnboardingData({ birth_date: localDateString });
   };
 
   const handleDone = () => {

@@ -10,8 +10,8 @@ export interface OnboardingData {
   linkedin_username?: string;
   phone_number: string;
   phone_verified: boolean;
-  sms_verification_code: string;
   access_code: string;
+  created_at?: string;
 }
 
 interface OnboardingContextType {

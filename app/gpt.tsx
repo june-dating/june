@@ -3,12 +3,14 @@
 import { LinearGradient } from "expo-linear-gradient";
 import { router } from "expo-router";
 
-import { Ionicons } from "@expo/vector-icons";
+import { FontAwesome5, Ionicons } from "@expo/vector-icons";
 import { useFonts } from "expo-font";
 import { useEffect, useRef, useState } from "react";
 import {
   Alert,
+  Animated,
   Dimensions,
+  Easing,
   Image,
   Keyboard,
   KeyboardAvoidingView,
@@ -64,6 +66,172 @@ Bonus points if there's something poetic, flirty, or bold in tone
 Keep it fresh, modern, and not cringe. Avoid clichés and anything that sounds robotic or generic. The goal is to make someone stop scrolling and think, "Who is this person and where have they been?"
 
 Make sure every bullet point actually says something. Cut the filler. Show, don't just tell.`;
+
+function AnimatedChatGPTButton({
+  onPress,
+  isCopied,
+  setIsCopied,
+}: {
+  onPress: () => void;
+  isCopied: boolean;
+  setIsCopied: React.Dispatch<React.SetStateAction<boolean>>;
+}) {
+  const [phase, setPhase] = useState("idle"); // idle | animating | done
+  const progress = useRef(new Animated.Value(0)).current;
+
+  // openChatGPTAfterAnim controls when to call onPress, type-safe default
+  const openChatGPTAfterAnim = useRef<(() => void) | undefined>(undefined);
+
+  useEffect(() => {
+    if (isCopied) {
+      setPhase("animating");
+      progress.setValue(0);
+      Animated.timing(progress, {
+        toValue: 1,
+        duration: 1200,
+        easing: Easing.inOut(Easing.ease),
+        useNativeDriver: false,
+      }).start(() => {
+        setPhase("done");
+        // Only after animation, open ChatGPT if requested
+        if (typeof openChatGPTAfterAnim.current === "function") {
+          openChatGPTAfterAnim.current();
+          openChatGPTAfterAnim.current = undefined;
+        }
+        // Revert to idle after 3 seconds
+        setTimeout(() => {
+          setPhase("idle");
+          setIsCopied(false);
+        }, 3000);
+      });
+    } else {
+      setPhase("idle");
+      progress.setValue(0);
+    }
+  }, [isCopied]);
+
+  const handlePress = () => {
+    // Set isCopied to true to start animation
+    setIsCopied(true);
+    // Set callback to open ChatGPT after animation
+    openChatGPTAfterAnim.current = onPress;
+  };
+
+  // Arrow position moves with progress
+  const arrowTranslateX = progress.interpolate({
+    inputRange: [0, 1],
+    outputRange: [0, 200], // match new width minus icon size
+  });
+
+  return (
+    <TouchableOpacity
+      style={styles.chatGPTButton}
+      onPress={handlePress}
+      activeOpacity={0.75}
+      disabled={phase === "animating" || phase === "done"}
+    >
+      <LinearGradient
+        colors={["#FFF9E5", "#FFF9E5", "#FFF9E5"]}
+        style={styles.buttonGradient}
+        start={{ x: 0, y: 0 }}
+        end={{ x: 1, y: 1 }}
+      >
+        <View
+          style={[styles.chatGPTButtonContent, { justifyContent: "center" }]}
+        >
+          {/* Centered content group: text/progress and icon */}
+          <View
+            style={{
+              flexDirection: "row",
+              alignItems: "center",
+              justifyContent: "center",
+              flex: 1,
+            }}
+          >
+            {/* Copy icon only in idle phase, immediately removed on click */}
+            {phase === "idle" && (
+              <Ionicons
+                name="copy-outline"
+                size={22}
+                color="#000"
+                style={{ marginRight: 10 }}
+              />
+            )}
+            {/* Main content: text or animation, always centered */}
+            <View
+              style={[
+                styles.chatGPTTextContainer,
+                { alignItems: "center", marginRight: 0, marginLeft: 0 },
+              ]}
+            >
+              {phase === "idle" && (
+                <Text style={styles.chatGPTButtonTextMain}>
+                  Copy the magic prompt
+                </Text>
+              )}
+              {phase === "animating" && (
+                <View
+                  style={{ width: 220, height: 22, justifyContent: "center" }} // width increased
+                >
+                  <View
+                    style={{
+                      position: "absolute",
+                      left: 0,
+                      right: 0,
+                      height: 4, // reduced height
+                      backgroundColor: "#f0d3b1", // new background color
+                      borderRadius: 2,
+                      top: 9,
+                    }}
+                  />
+                  <Animated.View
+                    style={{
+                      position: "absolute",
+                      left: 0,
+                      top: 6,
+                      width: progress.interpolate({
+                        inputRange: [0, 1],
+                        outputRange: [0, 220], // width increased
+                      }),
+                      height: 3, // reduced height
+                      backgroundColor: "#f2b56f", // new progress color
+                      borderRadius: 4,
+                    }}
+                  />
+                  <Animated.View
+                    style={{
+                      position: "absolute",
+                      top: 0,
+                      left: 0,
+                      transform: [{ translateX: arrowTranslateX }],
+                    }}
+                  >
+                    <FontAwesome5 name="plane" size={20} color="#b87a2e" />
+                  </Animated.View>
+                </View>
+              )}
+              {phase === "done" && (
+                <Text style={styles.chatGPTButtonTextMain}>Prompt copied!</Text>
+              )}
+              <Text style={styles.chatGPTButtonTextSecondary}>
+                {phase === "done"
+                  ? "Open ChatGPT and paste it"
+                  : "And click here to open ChatGPT"}
+              </Text>
+            </View>
+            {/* ChatGPT icon: show as soon as user clicks (animating or done) */}
+            {(phase === "animating" || phase === "done") && (
+              <Image
+                source={require("../assets/images/onboarding/gpt.png")}
+                style={{ width: 30, height: 30, marginLeft: 10 }}
+              />
+            )}
+          </View>
+        </View>
+      </LinearGradient>
+    </TouchableOpacity>
+  );
+}
 
 export default function GPTScreen() {
   const insets = useSafeAreaInsets();
@@ -125,10 +293,9 @@ export default function GPTScreen() {
       await Clipboard.setString(GPT_PROMPT);
       setIsCopied(true);
       setTimeout(() => setIsCopied(false), 5000); // Changed to 10000ms (10 seconds)
-
       // Try to open ChatGPT app or website
       try {
-        const chatGPTAppURL = "openai://";
+        const chatGPTAppURL = "com.openai.chatgpt://";
         const canOpenApp = await Linking.canOpenURL(chatGPTAppURL);
         if (canOpenApp) {
           await Linking.openURL(chatGPTAppURL);
@@ -220,41 +387,11 @@ export default function GPTScreen() {
               keyboardDismissMode="interactive"
             >
               {/* ChatGPT Button */}
-              <TouchableOpacity
-                style={styles.chatGPTButton}
+              <AnimatedChatGPTButton
                 onPress={copyPromptAndOpenGPT}
-                activeOpacity={0.75}
-              >
-                <LinearGradient
-                  colors={[
-                    "#FFF9E5", // very light gold
-                    "#FFF9E5", // soft gold
-                    "#FFF9E5", // pastel gold
-                  ]}
-                  style={styles.buttonGradient}
-                  start={{ x: 0, y: 0 }}
-                  end={{ x: 1, y: 1 }}
-                >
-                  <View style={styles.chatGPTButtonContent}>
-                    <View style={styles.chatGPTTextContainer}>
-                      <Text style={styles.chatGPTButtonTextMain}>
-                        {isCopied ? "Prompt copied!" : "Copy the magic prompt"}
-                      </Text>
-                      <Text style={styles.chatGPTButtonTextSecondary}>
-                        And click here to open ChatGPT
-                      </Text>
-                    </View>
-                    {isCopied ? (
-                      <Ionicons name="checkmark" size={22} color="#000000" />
-                    ) : (
-                      <Image
-                        source={require("../assets/images/onboarding/gpt.png")}
-                        style={{ width: 30, height: 30 }}
-                      />
-                    )}
-                  </View>
-                </LinearGradient>
-              </TouchableOpacity>
+                isCopied={isCopied}
+                setIsCopied={setIsCopied}
+              />
 
               {/* Input Section */}
               <View ref={inputRef} style={styles.inputSection}>

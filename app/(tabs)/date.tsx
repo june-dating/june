@@ -1,18 +1,36 @@
+import { Ionicons } from "@expo/vector-icons";
 import { useFonts } from "expo-font";
 import { LinearGradient } from "expo-linear-gradient";
-import { StatusBar, StyleSheet, Text, View } from "react-native";
+import { useRouter } from "expo-router";
+import {
+  StatusBar,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View,
+} from "react-native";
 import Animated, { FadeInUp } from "react-native-reanimated";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
+import { supabase } from "../../lib/supabase/supabase";
 import { OnboardingColors } from "../colors";
+import { useOnboarding } from "../contexts/OnboardingContext";
 
 export default function DateScreen() {
   const insets = useSafeAreaInsets();
+  const router = useRouter();
+  const { clearOnboardingData } = useOnboarding();
   const [fontsLoaded] = useFonts({
     Fraunces: require("../../assets/fonts/Fraunces-VariableFont_SOFT,WONK,opsz,wght.ttf"),
     Montserrat: require("../../assets/fonts/Montserrat-VariableFont_wght.ttf"),
   });
 
   if (!fontsLoaded) return null;
+
+  const handleLogout = async () => {
+    await supabase.auth.signOut();
+    clearOnboardingData();
+    router.replace("/");
+  };
 
   return (
     <View style={styles.container}>
@@ -27,6 +45,26 @@ export default function DateScreen() {
         start={{ x: 1, y: 1 }}
         end={{ x: 0, y: 0 }}
       >
+        {/* Logout button at top right */}
+        <View
+          style={{
+            position: "absolute",
+            top: insets.top + 16,
+            right: 20,
+            zIndex: 10,
+          }}
+        >
+          <TouchableOpacity
+            onPress={handleLogout}
+            hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+          >
+            <Ionicons
+              name="log-out-outline"
+              size={24}
+              color={OnboardingColors.text.primary}
+            />
+          </TouchableOpacity>
+        </View>
         <View style={[styles.content, { paddingTop: insets.top + 40 }]}>
           <Animated.View
             style={styles.headerContainer}

@@ -16,6 +16,7 @@ import {
   Text,
   TouchableOpacity,
   View,
+  useWindowDimensions,
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { OnboardingColors } from "./colors";
@@ -34,15 +35,20 @@ interface PhotoItem {
 function PhotoCarousel({
   photos,
   onRemovePhoto,
+  width,
+  height,
 }: {
   photos: PhotoItem[];
   onRemovePhoto: (id: string) => void;
+  width: number;
+  height: number;
 }) {
+  const AVAILABLE_HEIGHT = height * 0.85;
   // Responsive sizing based on screen height
   // Increase carousel height and item size
-  const carouselHeight = Math.min(AVAILABLE_HEIGHT * 0.4, 220); // 40% of available height, max 220px
+  const carouselHeight = Math.min(AVAILABLE_HEIGHT * 0.4, width * 0.55); // 40% of available height, max 55% of width
   const itemWidth = carouselHeight - 8; // Square photos with minimal padding
-  const itemSpacing = 14;
+  const itemSpacing = Math.max(10, width * 0.03);
   const [currentIndex, setCurrentIndex] = useState(0);
 
   const renderPhotoItem = ({
@@ -115,7 +121,7 @@ function PhotoCarousel({
   };
 
   return (
-    <View style={styles.carouselContainer}>
+    <View style={[styles.carouselContainer, { height: carouselHeight }]}>
       <FlatList
         data={carouselData}
         renderItem={renderPhotoItem}
@@ -142,6 +148,9 @@ function PhotoCarousel({
               styles.paginationDot,
               {
                 opacity: Math.floor(currentIndex / 3) === index ? 1 : 0.4,
+                width: Math.max(6, width * 0.015),
+                height: Math.max(6, width * 0.015),
+                borderRadius: Math.max(3, width * 0.0075),
               },
             ]}
           />
@@ -154,25 +163,40 @@ function PhotoCarousel({
 function SelectPhotosButton({
   onPress,
   isComplete,
+  width,
 }: {
   onPress: () => void;
   isComplete: boolean;
+  width: number;
 }) {
   return (
     <View style={styles.selectButtonContainer}>
       <TouchableOpacity
-        style={styles.selectButton}
+        style={[
+          styles.selectButton,
+          {
+            width: Math.min(width - 48, width * 0.8),
+            height: Math.max(44, width * 0.13),
+          },
+        ]}
         onPress={onPress}
         activeOpacity={0.92}
       >
         <View style={styles.selectButtonGradient}>
           <Ionicons
             name="add"
-            size={20}
+            size={Math.max(20, width * 0.055)}
             color={OnboardingColors.icon.checkmark}
-            style={{ marginRight: 10 }}
+            style={{ marginRight: Math.max(8, width * 0.025) }}
           />
-          <Text style={styles.selectButtonText}>Add Photos</Text>
+          <Text
+            style={[
+              styles.selectButtonText,
+              { fontSize: Math.max(15, width * 0.045) },
+            ]}
+          >
+            Add Photos
+          </Text>
         </View>
       </TouchableOpacity>
     </View>
@@ -182,15 +206,21 @@ function SelectPhotosButton({
 function CompletionButton({
   isComplete,
   onPress,
+  width,
 }: {
   isComplete: boolean;
   onPress: () => void;
+  width: number;
 }) {
   return (
     <View style={styles.completionButtonContainer}>
       <TouchableOpacity
         style={[
           styles.doneButtonPhotoUpload,
+          {
+            width: Math.min(width - 32, width * 0.9),
+            height: Math.max(48, width * 0.15),
+          },
           !isComplete && styles.completionButtonDisabled,
         ]}
         onPress={onPress}
@@ -200,6 +230,7 @@ function CompletionButton({
         <Text
           style={[
             styles.doneButtonTextPhotoUpload,
+            { fontSize: Math.max(16, width * 0.05) },
             !isComplete && styles.completionButtonTextDisabled,
           ]}
         >
@@ -207,9 +238,9 @@ function CompletionButton({
         </Text>
         <Ionicons
           name="arrow-forward"
-          size={22}
+          size={Math.max(20, width * 0.06)}
           color="#00000"
-          style={{ marginLeft: 8 }}
+          style={{ marginLeft: Math.max(8, width * 0.025) }}
         />
       </TouchableOpacity>
     </View>
@@ -219,6 +250,8 @@ function CompletionButton({
 // F-pattern: Title and subtitle top left, then photo grid, then add button, then complete button bottom right
 export default function PhotoUploadScreen() {
   const insets = useSafeAreaInsets();
+  const { width, height } = useWindowDimensions();
+  const AVAILABLE_HEIGHT = height * 0.85;
   const [photos, setPhotos] = useState<PhotoItem[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [fontsLoaded] = useFonts({
@@ -299,7 +332,12 @@ export default function PhotoUploadScreen() {
 
           {/* Photo Grid Section - reduced spacing */}
           <View style={styles.photoSectionFPattern}>
-            <PhotoCarousel photos={photos} onRemovePhoto={removePhoto} />
+            <PhotoCarousel
+              photos={photos}
+              onRemovePhoto={removePhoto}
+              width={width}
+              height={height}
+            />
           </View>
 
           {/* Add Photos Button - closer to carousel */}
@@ -308,6 +346,7 @@ export default function PhotoUploadScreen() {
               <SelectPhotosButton
                 onPress={pickMultipleImages}
                 isComplete={isComplete}
+                width={width}
               />
             </View>
           )}
@@ -324,7 +363,11 @@ export default function PhotoUploadScreen() {
             },
           ]}
         >
-          <CompletionButton isComplete={isComplete} onPress={handleComplete} />
+          <CompletionButton
+            isComplete={isComplete}
+            onPress={handleComplete}
+            width={width}
+          />
         </View>
       </LinearGradient>
     </View>

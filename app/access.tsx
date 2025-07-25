@@ -24,6 +24,7 @@ export default function AccessScreen() {
   const insets = useSafeAreaInsets();
   const [isLoading, setIsLoading] = useState(false);
   const [accessCode, setAccessCode] = useState("");
+  const [error, setError] = useState("");
 
   // Non-blocking font loading with error handling
   const [fontsLoaded, fontError] = useFonts({
@@ -34,6 +35,12 @@ export default function AccessScreen() {
   const shouldUseFraunces = fontsLoaded && !fontError;
 
   const handleGetAccess = () => {
+    if (accessCode !== "JUNE") {
+      setError("Invalid access code");
+      return;
+    }
+    setError("");
+    setIsLoading(true);
     try {
       router.push("/celebrate");
     } catch (error) {
@@ -46,6 +53,8 @@ export default function AccessScreen() {
           console.error("Fallback navigation error:", fallbackError);
         }
       }, 100);
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -66,7 +75,7 @@ export default function AccessScreen() {
           style={{ flex: 1 }}
           behavior={Platform.OS === "ios" ? "padding" : undefined}
         >
-          <View style={[styles.content, { paddingTop: insets.top + 30 }]}>
+          <View style={[styles.content, { paddingTop: insets.top + 0 }]}>
             <View style={styles.imageContainer}>
               <Image
                 source={require("../assets/images/pink.png")}
@@ -97,6 +106,13 @@ export default function AccessScreen() {
               Just a date that matters.
             </Text>
             <View style={styles.inputContainer}>
+              {error ? (
+                <Text
+                  style={{ color: "red", marginBottom: 8, fontWeight: "bold" }}
+                >
+                  {error}
+                </Text>
+              ) : null}
               <View style={styles.inputWrapper}>
                 <TextInput
                   style={[
@@ -105,10 +121,13 @@ export default function AccessScreen() {
                   ]}
                   placeholder="Enter access code"
                   placeholderTextColor={OnboardingColors.text.tertiary}
-                  value={accessCode}
-                  onChangeText={setAccessCode}
+                  value={accessCode.toUpperCase()}
+                  onChangeText={(text) => {
+                    setAccessCode(text.toUpperCase());
+                    if (error) setError("");
+                  }}
                   editable={!isLoading}
-                  autoCapitalize="none"
+                  autoCapitalize="characters"
                   autoCorrect={false}
                   keyboardType="default"
                 />
